@@ -10,26 +10,9 @@ export class PaymentService {
     private paymentRepository: Repository<Payment>
   ) {}
 
-  async findAll():
-    Promise<Payment[]> {
-    return this.paymentRepository.find();
-  }
+  async create() {}
 
-  async create(paymentData: Payment): Promise<Payment> {
-    const newPayment = this.paymentRepository.create(paymentData);
-    return this.paymentRepository.save(newPayment);
-  }
+  async update() {}
 
-  async findOne(id: number): Promise<Payment | null> {
-    return this.paymentRepository.findOneBy({ id });
-  }
-
-  async update(id: number, paymentData: Payment): Promise<Payment | null> {
-    await this.paymentRepository.update(id, paymentData);
-    return this.paymentRepository.findOneBy({ id });
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.paymentRepository.delete(id);
-  }
+  async remove() {}
 }
