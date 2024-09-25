@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
-@Entity()
+import { EEntities } from "enums";
+
+@Entity({ name: EEntities.PAYMENTS })
 export class Payment {
   @PrimaryGeneratedColumn()
   id: number;
