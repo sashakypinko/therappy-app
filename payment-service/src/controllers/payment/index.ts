@@ -1,8 +1,10 @@
 import { Controller } from "@nestjs/common";
 
+import { EControllers } from "enums";
 import { PaymentService } from "services";
 
-@Controller()
+@Controller(EControllers.PAYMENTS)
+
 export class PaymentController {
-  constructor(private readonly appService: PaymentService) {}
+  constructor(private readonly paymentService: PaymentService) {}
 }
