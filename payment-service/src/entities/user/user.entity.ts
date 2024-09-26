@@ -1,10 +1,12 @@
 import {
   Entity,
   Column,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 
 import { EEntities } from "enums";
+import { UserBankDetails } from "entities";
 
 @Entity({ name: EEntities.USERS })
 
@@ -29,4 +31,7 @@ export class User {
   static STATUS_DELETED = 5;
   static STATUS_APPROVED = 2;
   static STATUS_DECLINED = 4;
+
+  @OneToOne(() => UserBankDetails, (bank_details) => bank_details.user)
+  bank_details: UserBankDetails;
 }
