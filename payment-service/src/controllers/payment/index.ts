@@ -23,24 +23,11 @@ export class PaymentController {
 
   @Post(Routes.CREATE_PAYMENT)
   async createPayment(@Body() createPaymentDto: BasePaymentDto) {
-    const {
-      amount,
-      user_id,
-      therapist_id,
-      appointment_id
-    } = createPaymentDto;
-
     try {
       const { token } = await this.TyroAPI.generateAuthToken();
 
       const { id } = await this.paymentService.create({
-        amount,
-        user_id,
-        therapist_id,
-        appointment_id,
-        transaction_id: null,
-        created_at: new Date(),
-        updated_at: new Date(),
+        ...createPaymentDto,
         status: EPaymentStatus.PENDING
       });
 
