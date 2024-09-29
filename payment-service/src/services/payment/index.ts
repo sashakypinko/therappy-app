@@ -2,7 +2,11 @@ import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 
-import { Payment } from "entities";
+import {
+  Payment,
+  BasePaymentDto,
+  UpdatePaymentDto
+} from "entities";
 
 @Injectable()
 export class PaymentService {
@@ -10,9 +14,17 @@ export class PaymentService {
     private paymentRepository: Repository<Payment>
   ) {}
 
-  async create() {}
+  async create(createPaymentDto: BasePaymentDto): Promise<Payment> {
+    const newPayment = this.paymentRepository.create(createPaymentDto);
 
-  async update() {}
+    return await this.paymentRepository.save(newPayment);
+  }
 
-  async remove() {}
+  async update(id: string, updatePaymentDto: UpdatePaymentDto) {
+    return await this.paymentRepository.update(id, updatePaymentDto);
+  }
+
+  async delete(id: number) {
+    return await this.paymentRepository.delete({ id });
+  }
 }
