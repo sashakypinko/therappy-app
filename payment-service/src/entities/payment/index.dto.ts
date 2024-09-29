@@ -18,12 +18,6 @@ export class BasePaymentDto {
   @IsString() appointment_id: string
   @IsEnum(EPaymentStatus) status: EPaymentStatus
 
-  @IsDate()
-  @Type(() => Date) created_at: Date
-
-  @IsDate()
-  @Type(() => Date) updated_at: Date
-
   @IsOptional()
   @IsString() transaction_id: string | null
 }
