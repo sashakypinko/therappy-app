@@ -26,6 +26,7 @@ export class PaymentController {
     const {
       amount,
       user_id,
+      therapist_id,
       appointment_id
     } = createPaymentDto;
 
@@ -35,6 +36,7 @@ export class PaymentController {
       const { id } = await this.paymentService.create({
         amount,
         user_id,
+        therapist_id,
         appointment_id,
         transaction_id: null,
         created_at: new Date(),
