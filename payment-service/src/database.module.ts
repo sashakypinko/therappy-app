@@ -18,14 +18,13 @@ import {
       imports: [ ConfigModule ],
       inject: [ ConfigService ],
       useFactory: async (configService: ConfigService) => ({
-        type: "mysql",
-        synchronize: false,
-
+        type: configService.get<"mysql">("DB"),
         host: configService.get<string>("DB_HOST"),
         port: configService.get<number>("DB_PORT"),
         database: configService.get<string>("DB_NAME"),
         username: configService.get<string>("DB_USERNAME"),
         password: configService.get<string>("DB_PASSWORD"),
+        synchronize: configService.get<boolean>("SYNCHRONIZE"),
 
         entities: [
           User,

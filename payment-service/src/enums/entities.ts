@@ -10,3 +10,10 @@ export enum EUserRelations {
   USER_ID = "user_id",
   BANK_DETAILS = "bank_details"
 }
+
+export enum EPaymentStatus {
+  FAILED = "FAILED",
+  PENDING = "PENDING",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
