@@ -2,25 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 
-import { Media } from "entities/media";
 import { Payment } from "entities/payment";
-import { Service, ServiceCategory } from "entities/service";
-
-import {
-  Appointment,
-  AppointmentCancel,
-  AppointmentReview,
-  AppointmentInterval
-} from "entities/appointment";
-
-import {
-  User,
-  UserDetails,
-  UserSchedule,
-  UserAdditional,
-  UserBankDetails,
-  UserScheduleOverrides,
-} from "entities/user";
 
 @Module({
   imports: [
@@ -38,44 +20,10 @@ import {
         password: configService.get<string>("DB_PASSWORD"),
         synchronize: configService.get<boolean>("SYNCHRONIZE"),
 
-        entities: [
-          Media,
-          Payment,
-          Service,
-          ServiceCategory,
-
-          Appointment,
-          AppointmentCancel,
-          AppointmentReview,
-          AppointmentInterval,
-
-          User,
-          UserDetails,
-          UserSchedule,
-          UserAdditional,
-          UserBankDetails,
-          UserScheduleOverrides,
-        ],
+        entities: [ Payment ],
       }),
     }),
-    TypeOrmModule.forFeature([
-      Media,
-      Payment,
-      Service,
-      ServiceCategory,
-
-      Appointment,
-      AppointmentCancel,
-      AppointmentReview,
-      AppointmentInterval,
-
-      User,
-      UserDetails,
-      UserSchedule,
-      UserAdditional,
-      UserBankDetails,
-      UserScheduleOverrides,
-    ]),
+    TypeOrmModule.forFeature([ Payment ]),
   ],
   exports: [ TypeOrmModule ],
 })

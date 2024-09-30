@@ -1,11 +1,10 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn, OneToMany,
+  PrimaryGeneratedColumn,
 } from "typeorm";
 
 import { EEntities, EPaymentStatus } from "enums";
-import {Appointment} from "../appointment";
 
 @Entity({ name: EEntities.PAYMENTS })
 
@@ -16,16 +15,23 @@ export class Payment {
   @Column() user_id: number
   @Column() status: EPaymentStatus
 
-  @OneToMany(() => Appointment, (appointment) => appointment.payment)
-  appointments: Appointment[];
-
   @Column({ nullable: true })
   transaction_id: number | null
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column("json", { nullable: true })
+  appointment_ids: number[];
+
+  @Column({
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP"
+  })
   created_at: Date
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
+  @Column({
+    type: "timestamp",
+    onUpdate: "CURRENT_TIMESTAMP",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   updated_at: Date
 }
 
