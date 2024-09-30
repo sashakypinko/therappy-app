@@ -1,9 +1,21 @@
 export enum EEntities {
-  USERS = "users",
-  SERVICES = "services",
+  MEDIAS = "medias",
   PAYMENTS = "payments",
-  APPOINTMENTS = "appointments",
+
+  USERS = "users",
+  USER_DETAILS = "user_details",
+  USER_SCHEDULES = "user_schedules",
+  USER_ADDITIONAL = "user_additionals",
   USER_BANK_DETAILS = "user_bank_details",
+  USER_SCHEDULE_OVERRIDES = "user_schedules_overrides",
+
+  SERVICES = "services",
+  SERVICES_CATEGORIES = "service_categories",
+
+  APPOINTMENTS = "appointments",
+  APPOINTMENT_REVIEW = "appointment_reviews",
+  APPOINTMENTS_CANCELS = "appointment_cancels",
+  APPOINTMENT_INTERVALS = "appointment_intervals",
 }
 
 export enum EUserRelations {

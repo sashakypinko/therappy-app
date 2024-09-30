@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react';
+import {ReactElement, useEffect, useMemo, useState} from 'react';
 import AppointmentsList from '../../../../../../common/components/appointments-list';
 import { IAppointment } from '../../../../../../services/api/appointment/dto/appointment.dto';
 import Button from '../../../../../../common/ui/button';
@@ -6,12 +6,13 @@ import useIsMobile from '../../../../../../hooks/use-is-mobile.hook';
 import CartModal from './cart-modal';
 import PaymentModal from './payment-modal';
 import { BookingsTabs, TabProps } from "../bookings";
-import { useQuery } from '../../../../../../hooks';
+import {useAuthUser, useQuery} from '../../../../../../hooks';
 import useSnackbar from '../../../../../../hooks/use-snackbar.hook';
 import { AppointmentApi } from '../../../../../../services/api/appointment';
 import SuccessPaymentModal from './success-payment-modal';
 import { useNavigate } from "react-router-dom";
 import { ClientRouteEnum } from "../../../../routes/enums/route.enum";
+import {PaymentApi} from "../../../../../../services/api/payment";
 
 const WaitingForPayment = ({
   updateListRef,
@@ -20,6 +21,8 @@ const WaitingForPayment = ({
   onTabChange,
 }: TabProps): ReactElement => {
   const { params } = useQuery();
+
+  const user = useAuthUser();
   const [openCartModal, setOpenCartModal] = useState<boolean | null>(null);
   const [openPaymentModal, setOpenPaymentModal] = useState<boolean>(false);
   const [openSuccessPaymentModal, setOpenSuccessPaymentModal] = useState<boolean>(false);
@@ -31,6 +34,9 @@ const WaitingForPayment = ({
   const { errorSnackbar, successSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
+  const [token, setToken] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<number | null>(null);
+
   const handleRemoveItem = (item: IAppointment) => {
     const newSelectedItems = selected.filter(({ id }) => id !== item.id);
     setSelected(newSelectedItems);
@@ -39,26 +45,46 @@ const WaitingForPayment = ({
     }
   };
 
+  const appointmentsIds = useMemo(() => selected.map(item => item.id), [selected]);
+
   const handleCreatePayment = async () => {
+    if (!user) return void 0;
+
     try {
       setLoading(true);
-      const { client_secret, status, order_id } = await AppointmentApi.createPayment({
-        items: selected.map(({ id }) => id),
+
+      const { token, payment_id } = await PaymentApi.createPayment({
+        user_id: user.id,
+        appointment_ids: appointmentsIds,
       });
 
-      if (status) {
-        setPaymentToken(client_secret);
-        setOrderId(order_id);
-        setOpenCartModal(false);
-        setOpenPaymentModal(true);
-      } else {
-        errorSnackbar('Error while checking out!');
-      }
+      setToken(token);
+      setPaymentId(payment_id);
     } catch (e) {
-      errorSnackbar('Error while checking out!');
+      errorSnackbar("Error while checking out!");
     } finally {
       setLoading(false);
     }
+
+    // try {
+    //   setLoading(true);
+    //   const { client_secret, status, order_id } = await AppointmentApi.createPayment({
+    //     items: selected.map(({ id }) => id),
+    //   });
+    //
+    //   if (status) {
+    //     setPaymentToken(client_secret);
+    //     setOrderId(order_id);
+    //     setOpenCartModal(false);
+    //     setOpenPaymentModal(true);
+    //   } else {
+    //     errorSnackbar('Error while checking out!');
+    //   }
+    // } catch (e) {
+    //   errorSnackbar('Error while checking out!');
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   const handleCompletePayment = async () => {

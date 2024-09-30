@@ -1,10 +1,11 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn, OneToMany,
 } from "typeorm";
 
 import { EEntities, EPaymentStatus } from "enums";
+import {Appointment} from "../appointment";
 
 @Entity({ name: EEntities.PAYMENTS })
 
@@ -12,12 +13,14 @@ export class Payment {
   @PrimaryGeneratedColumn() id: number
 
   @Column() amount: number
-  @Column() user_id: string
+  @Column() user_id: number
   @Column() status: EPaymentStatus
-  @Column() appointment_id: string
+
+  @OneToMany(() => Appointment, (appointment) => appointment.payment)
+  appointments: Appointment[];
 
   @Column({ nullable: true })
-  transaction_id: string | null
+  transaction_id: number | null
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date
