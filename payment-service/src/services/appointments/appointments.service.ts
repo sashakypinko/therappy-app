@@ -1,27 +1,17 @@
-import { In, Repository } from "typeorm";
+import { EntityManager } from "typeorm";
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
 
-import { Appointment } from "entities";
+import * as queries from "./queries";
 
 @Injectable()
 export class AppointmentsService {
-  constructor(
-    @InjectRepository(Appointment)
-    private appointmentRepository: Repository<Appointment>
-  ) {}
+  constructor(private appointmentManager: EntityManager) {}
 
-  async create() {}
+  async collectAmount(ids: Array<number>): Promise<number> {
+    const result = await this.appointmentManager.query(queries.FIND_BY_IDS, [ids]);
 
-  async update() {}
+    if (!result[0]) return 0;
 
-  async remove() {}
-
-  async collectAmount(ids: Array<number>) {
-    const appointments = await this.appointmentRepository.find({
-      where: { id: In(ids) }
-    });
-
-    return appointments.reduce((sum, payment) => sum + payment.price, 0);
-  };
+    return result[0].total;
+  }
 }

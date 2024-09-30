@@ -4,14 +4,12 @@ import { DatabaseModule } from "./database.module"
 import {
   UsersService,
   PaymentService,
-  ServicesService,
   AppointmentsService,
   UsersBankDetailsService,
 } from "services";
 
 import {
   UsersController,
-  ServiceController,
   PaymentController,
   AppointmentsController,
   UserBankDetailsController,
@@ -21,14 +19,12 @@ import {
   providers: [
     UsersService,
     PaymentService,
-    ServicesService,
     AppointmentsService,
     UsersBankDetailsService,
   ],
 
   controllers: [
     UsersController,
-    ServiceController,
     PaymentController,
     AppointmentsController,
     UserBankDetailsController,

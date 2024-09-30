@@ -1,8 +1,4 @@
-import {
-  Get,
-  Param,
-  Controller,
-} from "@nestjs/common";
+import { Controller } from "@nestjs/common";
 
 import { EControllers } from "enums";
 import { UsersService } from "services";
@@ -11,9 +7,4 @@ import { UsersService } from "services";
 
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Get(":id")
-  async getById(@Param("id") id: number) {
-    return await this.usersService.getById(id);
-  };
 }
