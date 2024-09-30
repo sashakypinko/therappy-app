@@ -1,12 +1,23 @@
 import {
   Entity,
   Column,
-  OneToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 
+import {
+  Media,
+  UserDetails,
+  Appointment,
+  UserSchedule,
+  UserAdditional,
+  UserBankDetails,
+  AppointmentCancel,
+  AppointmentReview,
+  UserScheduleOverrides,
+} from "entities";
+
 import { EEntities } from "enums";
-import { UserBankDetails } from "entities";
 
 @Entity({ name: EEntities.USERS })
 
@@ -14,24 +25,54 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column() type: number;
-  @Column() email: string;
-  @Column() status: number;
-  @Column() password: string;
-  @Column() last_name: string;
-  @Column() first_name: string;
+  @Column({ type: "varchar", nullable: false })
+  first_name: string;
 
-  static TYPE_ADMIN = 1;
-  static TYPE_CLIENT = 3;
-  static TYPE_THERAPIST = 2;
+  @Column({ type: "varchar", nullable: false })
+  last_name: string;
 
-  static STATUS_NEW = 0;
-  static STATUS_ACTIVE = 3;
-  static STATUS_PENDING = 1;
-  static STATUS_DELETED = 5;
-  static STATUS_APPROVED = 2;
-  static STATUS_DECLINED = 4;
+  @Column({ type: "tinyint", default: 0 })
+  status: number;
 
-  @OneToOne(() => UserBankDetails, (bank_details) => bank_details.user)
+  @Column({ type: "varchar", unique: true, nullable: false })
+  email: string;
+
+  @Column({ type: "varchar", nullable: false })
+  password: string;
+
+  @Column({ type: "tinyint", nullable: false })
+  type: number;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  appointments: Appointment[];
+
+  @OneToMany(() => UserDetails, (details) => details.user)
+  details: UserDetails;
+
+  @OneToMany(() => UserBankDetails, (bankDetails) => bankDetails.user)
   bank_details: UserBankDetails;
+
+  @OneToMany(() => UserSchedule, (schedule) => schedule.user)
+  schedule: UserSchedule[];
+
+  @OneToMany(() => UserScheduleOverrides, (override) => override.user)
+  schedule_overrides: UserScheduleOverrides[];
+
+  @OneToMany(() => Media, (attachment) => attachment.user)
+  attachments: Media[];
+
+  @OneToMany(() => UserAdditional, (additional) => additional.user)
+  additionals: UserAdditional[];
+
+  isAdmin(): boolean {
+    return this.type === 1;
+  }
+
+  isTherapist(): boolean {
+    return this.type === 2;
+  }
+
+  isCustomer(): boolean {
+    return this.type === 3;
+  }
 }

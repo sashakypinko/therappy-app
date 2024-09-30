@@ -5,8 +5,8 @@ import { setupInterceptorsTo } from './interceptors';
 export default class ApiService {
   private readonly instance: AxiosInstance;
 
-  constructor(protected readonly pathPrefix: string) {
-    this.instance = axios.create({ baseURL: process.env.REACT_APP_API_URL });
+  constructor(protected readonly pathPrefix: string, baseURL?: string) {
+    this.instance = axios.create({ baseURL: baseURL || process.env.REACT_APP_API_URL });
     setupInterceptorsTo(this.instance);
   }
 

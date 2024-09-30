@@ -1,23 +1,52 @@
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import {
   Payment,
+  Appointment,
   BasePaymentDto,
-  UpdatePaymentDto
+  UpdatePaymentDto,
 } from "entities";
 
 @Injectable()
 export class PaymentService {
-  constructor(@InjectRepository(Payment)
-    private paymentRepository: Repository<Payment>
+  constructor(
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
+
+    @InjectRepository(Appointment)
+    private appointmentRepository: Repository<Appointment>
   ) {}
 
   async create(createPaymentDto: BasePaymentDto): Promise<Payment> {
-    const newPayment = this.paymentRepository.create(createPaymentDto);
+    const {
+      status,
+      amount,
+      user_id,
+      transaction_id,
+      appointment_ids,
+    } = createPaymentDto;
 
-    return await this.paymentRepository.save(newPayment);
+    const appointments = await this.appointmentRepository.find({
+      where: { id: In(appointment_ids) }
+    });
+
+    const newPayment = this.paymentRepository.create({
+      amount,
+      status,
+      user_id,
+      appointments,
+      transaction_id,
+    });
+
+    const savedPayment = await this.paymentRepository.save(newPayment);
+
+    for (const appointment of appointments) appointment.payment = savedPayment;
+
+    await this.appointmentRepository.save(appointments);
+
+    return savedPayment;
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto) {

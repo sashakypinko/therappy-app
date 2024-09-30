@@ -1,11 +1,8 @@
-import { Type } from "class-transformer";
 import { PickType } from "@nestjs/mapped-types";
 
 import {
   IsEnum,
-  IsDate,
   IsNumber,
-  IsString,
   IsOptional,
 } from "class-validator";
 
@@ -13,13 +10,15 @@ import { EPaymentStatus } from "enums";
 
 export class BasePaymentDto {
   @IsNumber() amount: number
-  @IsString() user_id: string
-  @IsString() therapist_id: string
-  @IsString() appointment_id: string
+  @IsNumber() user_id: number
+  @IsNumber() appointment_ids: Array<number>
   @IsEnum(EPaymentStatus) status: EPaymentStatus
 
   @IsOptional()
-  @IsString() transaction_id: string | null
+  @IsNumber() therapist_id: number | null
+
+  @IsOptional()
+  @IsNumber() transaction_id: number | null
 }
 
 export class UpdatePaymentDto extends PickType(BasePaymentDto, ["status", "transaction_id"] as const) {}

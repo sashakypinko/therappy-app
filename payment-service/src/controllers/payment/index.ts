@@ -7,32 +7,46 @@ import {
 } from "@nestjs/common";
 
 import { ApiResponse } from "utils";
-import { PaymentService } from "services";
 import { TyroHealth } from "integrations";
 import { EControllers, EPaymentStatus } from "enums";
-import { BasePaymentDto, UpdatePaymentDto } from "entities";
+import { PaymentService, AppointmentsService } from "services";
 
+import * as DTO from "./dto";
 import * as Routes from "./routes";
 
 @Controller(EControllers.PAYMENTS)
 
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly appointmentService: AppointmentsService
+  ) {}
 
   TyroAPI = new TyroHealth();
 
   @Post(Routes.CREATE_PAYMENT)
-  async createPayment(@Body() createPaymentDto: BasePaymentDto) {
+  async createPayment(@Body() createPaymentDto: DTO.CreatePaymentPayloadDto) {
     try {
+      const {
+        user_id,
+        appointment_ids
+      } = createPaymentDto;
+
       const { token } = await this.TyroAPI.generateAuthToken();
+      const amount = await this.appointmentService.collectAmount(appointment_ids)
 
       const { id } = await this.paymentService.create({
-        ...createPaymentDto,
+        amount,
+        user_id,
+        appointment_ids,
+        therapist_id: null,
+        transaction_id: null,
         status: EPaymentStatus.PENDING
       });
 
       return ApiResponse.success("Payment created successfully", {
         token,
+        amount,
         paymentId: id
       });
     } catch (error) {
@@ -40,15 +54,14 @@ export class PaymentController {
     }
   };
 
-  @Post(`${Routes.UPDATE_PAYMENT}/:id`)
-  async updatePayment(@Param() id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
-    try {
-      await this.paymentService.update(id, updatePaymentDto);
+  @Post(Routes.CANCEL_PAYMENT)
+  async cancelPayment() {
 
-      return ApiResponse.success("Payment updated successfully");
-    } catch (error) {
-      return ApiResponse.error("Failed to update payment", error);
-    }
+  }
+
+  @Post(Routes.COMPLETE_PAYMENT)
+  async completePayment() {
+
   }
 
   @Delete(`${Routes.DELETE_PAYMENT}/:id`)

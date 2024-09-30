@@ -2,13 +2,25 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 
+import { Media } from "entities/media";
+import { Payment } from "entities/payment";
+import { Service, ServiceCategory } from "entities/service";
+
+import {
+  Appointment,
+  AppointmentCancel,
+  AppointmentReview,
+  AppointmentInterval
+} from "entities/appointment";
+
 import {
   User,
-  Payment,
-  Service,
-  Appointment,
-  UserBankDetails
-} from "entities";
+  UserDetails,
+  UserSchedule,
+  UserAdditional,
+  UserBankDetails,
+  UserScheduleOverrides,
+} from "entities/user";
 
 @Module({
   imports: [
@@ -27,20 +39,42 @@ import {
         synchronize: configService.get<boolean>("SYNCHRONIZE"),
 
         entities: [
-          User,
+          Media,
           Payment,
           Service,
+          ServiceCategory,
+
           Appointment,
-          UserBankDetails
+          AppointmentCancel,
+          AppointmentReview,
+          AppointmentInterval,
+
+          User,
+          UserDetails,
+          UserSchedule,
+          UserAdditional,
+          UserBankDetails,
+          UserScheduleOverrides,
         ],
       }),
     }),
     TypeOrmModule.forFeature([
-      User,
-      Service,
+      Media,
       Payment,
+      Service,
+      ServiceCategory,
+
       Appointment,
-      UserBankDetails
+      AppointmentCancel,
+      AppointmentReview,
+      AppointmentInterval,
+
+      User,
+      UserDetails,
+      UserSchedule,
+      UserAdditional,
+      UserBankDetails,
+      UserScheduleOverrides,
     ]),
   ],
   exports: [ TypeOrmModule ],
