@@ -6,10 +6,14 @@ import {
   Controller,
 } from "@nestjs/common";
 
-import { ApiResponse } from "utils";
-import { TyroHealth } from "integrations";
+import {
+  ApiResponse,
+  TyroService,
+  PaymentService,
+  AppointmentsService
+} from "services";
+
 import { EControllers, EPaymentStatus } from "enums";
-import { PaymentService, AppointmentsService } from "services";
 
 import * as DTO from "./dto";
 import * as Routes from "./routes";
@@ -18,11 +22,10 @@ import * as Routes from "./routes";
 
 export class PaymentController {
   constructor(
+    private readonly tyroService: TyroService,
     private readonly paymentService: PaymentService,
     private readonly appointmentService: AppointmentsService
   ) {}
-
-  TyroAPI = new TyroHealth();
 
   @Post(Routes.CREATE_PAYMENT)
   async createPayment(@Body() createPaymentDto: DTO.CreatePaymentPayloadDto) {
@@ -32,7 +35,7 @@ export class PaymentController {
         appointment_ids
       } = createPaymentDto;
 
-      const { token } = await this.TyroAPI.generateAuthToken();
+      const { token } = await this.tyroService.generateAuthToken();
       const amount = await this.appointmentService.collectAmount(appointment_ids)
 
       const { id } = await this.paymentService.create({

@@ -1,7 +1,9 @@
 import { Module } from "@nestjs/common";
+import { HttpModule } from "./http.module";
 import { DatabaseModule } from "./database.module"
 
 import {
+  TyroService,
   UsersService,
   PaymentService,
   AppointmentsService,
@@ -17,6 +19,7 @@ import {
 
 @Module({
   providers: [
+    TyroService,
     UsersService,
     PaymentService,
     AppointmentsService,
@@ -30,7 +33,16 @@ import {
     UserBankDetailsController,
   ],
 
-  imports: [ DatabaseModule ],
+  imports: [
+    DatabaseModule,
+    HttpModule.forFeature({
+      serviceName: "TyroHttpService",
+      config: {
+        enableLogging: true,
+        baseURL: "https://stg-api-au.medipass.io",
+      },
+    }),
+  ],
 })
 
 export class AppModule {}
