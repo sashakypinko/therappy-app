@@ -1,8 +1,9 @@
 export const TyroAPI = {
-  V1: "v1",
-  V2: "v2",
-  V3: "v3",
-  AUTH_TOKEN: "/auth/token"
+  V1: "/v1",
+  V2: "/v2",
+  V3: "/v3",
+  BASE_ULR: "",
+  AUTH_TOKEN: "/auth/token",
 };
 
 export const TyroTokenPayload = {

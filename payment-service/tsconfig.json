@@ -21,10 +21,8 @@
 
     "paths": {
       "@enums": ["enums/*"],
-      "@utils": ["utils/*"],
       "@entities": ["entities/*"],
       "@services": ["services/*"],
-      "@constants": ["constants/*"],
       "@interfaces": ["interfaces/*"],
       "@controllers": ["controllers/*"],
       "@integrations": ["integrations/*"]
