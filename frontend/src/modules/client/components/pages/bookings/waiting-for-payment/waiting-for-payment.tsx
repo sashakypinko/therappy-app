@@ -13,6 +13,7 @@ import SuccessPaymentModal from './success-payment-modal';
 import { useNavigate } from "react-router-dom";
 import { ClientRouteEnum } from "../../../../routes/enums/route.enum";
 import {PaymentApi} from "../../../../../../services/api/payment";
+import {MedipassPayment} from "./payment-modal/medipass-payment";
 
 const WaitingForPayment = ({
   updateListRef,
@@ -34,7 +35,6 @@ const WaitingForPayment = ({
   const { errorSnackbar, successSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
-  const [token, setToken] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<number | null>(null);
 
   const handleRemoveItem = (item: IAppointment) => {
@@ -53,12 +53,15 @@ const WaitingForPayment = ({
     try {
       setLoading(true);
 
-      const { token, payment_id } = await PaymentApi.createPayment({
+      const { data: {
+        token,
+        payment_id,
+      }} = await PaymentApi.createPayment({
         user_id: user.id,
         appointment_ids: appointmentsIds,
       });
 
-      setToken(token);
+      setPaymentToken(token);
       setPaymentId(payment_id);
     } catch (e) {
       errorSnackbar("Error while checking out!");
@@ -155,14 +158,7 @@ const WaitingForPayment = ({
         onSubmit={handleCreatePayment}
       />
       {paymentToken && (
-        <PaymentModal
-          open={openPaymentModal}
-          loading={loading}
-          paymentToken={paymentToken}
-          onSubmit={handleCompletePayment}
-          items={selected}
-          onClose={() => setOpenPaymentModal(false)}
-        />
+        <MedipassPayment token={paymentToken} />
       )}
       <SuccessPaymentModal
         open={openSuccessPaymentModal}

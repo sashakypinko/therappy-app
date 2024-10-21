@@ -8,7 +8,7 @@ class PaymentService extends ApiService {
   }
 
   createPayment = async (data: DTO.ICreatePaymentRequestDTO): Promise<DTO.ICreatePaymentResponseDTO> => {
-    return await this.post("/create-payment", data, false).then((res) => res.data);
+    return await this.postAsUsually("/create-payment", data).then((res) => res.data);
   };
 }
 
