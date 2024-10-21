@@ -6,7 +6,7 @@ export default class ApiService {
   private readonly instance: AxiosInstance;
 
   constructor(protected readonly pathPrefix: string, baseURL?: string) {
-    this.instance = axios.create({ baseURL: baseURL || process.env.REACT_APP_API_URL });
+    this.instance = axios.create({ baseURL: baseURL || process.env.REACT_APP_PHP_API_URL });
     setupInterceptorsTo(this.instance);
   }
 
@@ -29,6 +29,14 @@ export default class ApiService {
     appendFormData(data);
 
     return formData;
+  };
+
+  postAsUsually = async (url: string, data: object = {}, withoutPrefix?: boolean): Promise<AxiosResponse> => {
+    return await this.instance.post(`/${!withoutPrefix ? this.pathPrefix : ''}${url}`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   };
 
   get = async (url: string, query = {}, withoutPrefix?: boolean) => {

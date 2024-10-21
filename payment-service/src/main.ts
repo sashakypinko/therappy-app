@@ -7,6 +7,7 @@ import { AppModule } from "./app.module";
   dotenv.config();
 
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
 
   await app.listen(3001);
 })();
