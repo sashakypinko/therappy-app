@@ -4,20 +4,24 @@ import * as Styled from "./styled";
 import { useMedipass } from "hooks";
 import { EPaymentMethod } from "hooks/medipass/interfaces";
 
-interface IMedipassPayment {
-  token: string
+export interface IMedipassPayment {
+  paymentData: {
+    token: string
+    paymentId: number
+    amount: string
+  }
 }
 
-export const MedipassPayment = ({ token }: IMedipassPayment) => {
+export const MedipassPayment = ({ paymentData }: IMedipassPayment) => {
   const handleError = () => { /**/ };
   const handleCancel = () => { /**/ };
   const handleSuccess = () => { /**/ };
   const handleCloseModal = () => { /**/ };
 
   useMedipass({
-    token,
+    token: paymentData.token,
     transaction: {
-      chargeAmount: "$100",
+      chargeAmount: paymentData.amount,
       invoiceReference: "1",
       providerNumber: "2429581T",
       paymentMethod: EPaymentMethod.NEW_PAYMENT_CARD
@@ -31,7 +35,7 @@ export const MedipassPayment = ({ token }: IMedipassPayment) => {
 
   return (
     <Styled.Container>
-      <Styled.MedipassContainer id="medipass-transaction-form" />
+      <Styled.MedipassContainer id="medipass-partner-sdk--create-transaction-root" />
     </Styled.Container>
   );
 };

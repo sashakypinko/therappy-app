@@ -1,8 +1,6 @@
 import { useEffect } from "react";
-
 import isFunction from "lodash/isFunction";
 import medipassSDK from "@medipass/partner-sdk";
-
 import * as Interfaces from "./interfaces";
 import { EmptyFunction } from "../../common/constants";
 
@@ -31,6 +29,9 @@ export const useMedipass = ({
   onTransactionCreated = EmptyFunction,
 }: IUseMedipassHook) => {
   useEffect(() => {
+    const existingElement = document.getElementById('medipass-partner-sdk--create-transaction-root');
+    if (existingElement) existingElement.innerHTML = '';
+
     (async () => {
       await medipassSDK.setConfig({
         token,
@@ -48,7 +49,6 @@ export const useMedipass = ({
       {
         version: "3",
         allowEdit: true,
-
         onError,
         onCancel,
         onSuccess,
@@ -61,5 +61,5 @@ export const useMedipass = ({
     return () => {
       if (isFunction(onUnmount)) onUnmount();
     };
-  }, []);
+  }, [token, transaction]);
 };
