@@ -11,9 +11,9 @@ import useSnackbar from '../../../../../../hooks/use-snackbar.hook';
 import { AppointmentApi } from '../../../../../../services/api/appointment';
 import SuccessPaymentModal from './success-payment-modal';
 import { useNavigate } from "react-router-dom";
-import { ClientRouteEnum } from "../../../../routes/enums/route.enum";
 import {PaymentApi} from "../../../../../../services/api/payment";
-import {MedipassPayment} from "./payment-modal/medipass-payment";
+import { MedipassPayment } from './payment-modal/medipass-payment';
+import { ICreatePaymentData } from '../../../../../../services/api/payment/dto';
 
 const WaitingForPayment = ({
   updateListRef,
@@ -29,6 +29,7 @@ const WaitingForPayment = ({
   const [openSuccessPaymentModal, setOpenSuccessPaymentModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [paymentToken, setPaymentToken] = useState<string>('');
+  const [paymentData, setPaymentData] = useState<ICreatePaymentData | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
   const [selected, setSelected] = useState<IAppointment[]>([]);
   const isMobile = useIsMobile();
@@ -53,16 +54,17 @@ const WaitingForPayment = ({
     try {
       setLoading(true);
 
-      const { data: {
-        token,
-        payment_id,
-      }} = await PaymentApi.createPayment({
+      const { data } = await PaymentApi.createPayment({
         user_id: user.id,
         appointment_ids: appointmentsIds,
       });
 
-      setPaymentToken(token);
-      setPaymentId(payment_id);
+      setPaymentData({
+        token: data.token,
+        paymentId: data.paymentId,
+        amount: `$${data.amount}`
+      });
+      setOpenCartModal(false);
     } catch (e) {
       errorSnackbar("Error while checking out!");
     } finally {
@@ -157,9 +159,7 @@ const WaitingForPayment = ({
         onClose={() => setOpenCartModal(false)}
         onSubmit={handleCreatePayment}
       />
-      {paymentToken && (
-        <MedipassPayment token={paymentToken} />
-      )}
+      {paymentData && <MedipassPayment paymentData={paymentData} />}
       <SuccessPaymentModal
         open={openSuccessPaymentModal}
         onClose={() => setOpenSuccessPaymentModal(false)}

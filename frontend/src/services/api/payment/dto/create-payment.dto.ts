@@ -1,6 +1,7 @@
-interface ICreatePaymentData {
+export interface ICreatePaymentData {
   token: string
-  payment_id: number
+  paymentId: number
+  amount: string
 }
 
 export interface ICreatePaymentRequestDTO {
