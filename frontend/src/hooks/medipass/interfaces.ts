@@ -1,3 +1,7 @@
+export enum EPaymentMethod {
+  NEW_PAYMENT_CARD = "new-payment-card"
+}
+
 export interface IProvider {
   lastName: string
   firstName: string
@@ -27,11 +31,8 @@ export type TOnTransactionCreated = () => void
 export type TOnTransactionUpdated = () => void
 
 export interface TTransactionAttributes {
-  payer: any
-  claimType: string
-  patient: IPatient
-  items: ITransactionItem[]
-
-  reference?: string
-  provider?: IProvider
+  chargeAmount: string
+  providerNumber: string
+  invoiceReference: string
+  paymentMethod: EPaymentMethod
 }

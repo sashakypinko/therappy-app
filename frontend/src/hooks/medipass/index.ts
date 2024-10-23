@@ -36,16 +36,14 @@ export const useMedipass = ({
         token,
         env: "stg",
         appVersion: "3",
-        appId: "therappy-web:tJQY9UrIuHTn2HqA3tHGy2LHbBVmmq9796Ca1mNE68c",
+        appId: "therappy-web",
       });
     })();
 
     medipassSDK.renderCreateTransaction(
       {
         ...transaction,
-        funder: "medicare",
-        platform: "funder",
-        paymentMethod: "payment-link",
+        platform: "virtual-terminal",
       },
       {
         version: "3",
