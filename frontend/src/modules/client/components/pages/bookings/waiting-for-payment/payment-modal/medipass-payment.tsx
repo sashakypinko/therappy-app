@@ -1,36 +1,50 @@
 import React from "react";
 
-import * as Styled from "./styled";
 import { useMedipass } from "hooks";
-import { EPaymentMethod } from "hooks/medipass/interfaces";
+import { EmptyFunction } from "common/constants";
 
-export interface IMedipassPayment {
-  paymentData: {
-    token: string
-    paymentId: number
-    amount: string
-  }
+import {
+  EPaymentMethod,
+  IErrorTransaction,
+  ISuccessTransaction
+} from "hooks/medipass/interfaces";
+
+import * as Styled from "./styled";
+
+interface IPayment {
+  token: string
+  amount: string
+  paymentId: number
 }
 
-export const MedipassPayment = ({ paymentData }: IMedipassPayment) => {
-  const handleError = () => { /**/ };
-  const handleCancel = () => { /**/ };
-  const handleSuccess = () => { /**/ };
-  const handleCloseModal = () => { /**/ };
+export interface IMedipassPayment {
+  paymentData: IPayment
+  onError(response: IErrorTransaction): void
+  onSuccess(response: ISuccessTransaction): void
 
+  onCancel?(): void
+  onCloseModal?(): void
+}
+
+export const MedipassPayment = ({
+  onError,
+  onSuccess,
+  paymentData,
+  onCancel = EmptyFunction,
+  onCloseModal = EmptyFunction,
+}: IMedipassPayment) => {
   useMedipass({
     token: paymentData.token,
     transaction: {
-      chargeAmount: paymentData.amount,
       invoiceReference: "1",
       providerNumber: "2429581T",
+      chargeAmount: paymentData.amount,
       paymentMethod: EPaymentMethod.NEW_PAYMENT_CARD
     },
-
-    onError: handleError,
-    onCancel: handleCancel,
-    onSuccess: handleSuccess,
-    onCloseModal: handleCloseModal
+    onError,
+    onCancel,
+    onSuccess,
+    onCloseModal
   });
 
   return (

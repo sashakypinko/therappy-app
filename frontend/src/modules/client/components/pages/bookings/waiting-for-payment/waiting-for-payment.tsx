@@ -1,42 +1,51 @@
-import {ReactElement, useEffect, useMemo, useState} from 'react';
-import AppointmentsList from '../../../../../../common/components/appointments-list';
-import { IAppointment } from '../../../../../../services/api/appointment/dto/appointment.dto';
-import Button from '../../../../../../common/ui/button';
-import useIsMobile from '../../../../../../hooks/use-is-mobile.hook';
-import CartModal from './cart-modal';
-import PaymentModal from './payment-modal';
-import { BookingsTabs, TabProps } from "../bookings";
-import {useAuthUser, useQuery} from '../../../../../../hooks';
-import useSnackbar from '../../../../../../hooks/use-snackbar.hook';
-import { AppointmentApi } from '../../../../../../services/api/appointment';
-import SuccessPaymentModal from './success-payment-modal';
-import { useNavigate } from "react-router-dom";
-import {PaymentApi} from "../../../../../../services/api/payment";
-import { MedipassPayment } from './payment-modal/medipass-payment';
-import { ICreatePaymentData } from '../../../../../../services/api/payment/dto';
+import {
+  useMemo,
+  useState,
+  ReactElement,
+} from "react";
+
+import { PaymentApi } from "services/api/payment";
+
+import CartModal from "./cart-modal";
+import Button from "../../../../../../common/ui/button";
+import useIsMobile from "../../../../../../hooks/use-is-mobile.hook";
+import AppointmentsList from "../../../../../../common/components/appointments-list";
+
+import { TabProps } from "../bookings";
+import { ICreatePaymentData } from "../../../../../../services/api/payment/dto";
+import { IErrorTransaction, ISuccessTransaction } from "hooks/medipass/interfaces";
+import { IAppointment } from "../../../../../../services/api/appointment/dto/appointment.dto";
+
+import { useQuery, useAuthUser } from "hooks";
+import useSnackbar from "../../../../../../hooks/use-snackbar.hook";
+
+import SuccessPaymentModal from "./success-payment-modal";
+import { MedipassPayment } from "./payment-modal/medipass-payment";
 
 const WaitingForPayment = ({
   updateListRef,
   onUpdateAppointmentOpen,
   onCancelAppointmentOpen,
-  onTabChange,
 }: TabProps): ReactElement => {
   const { params } = useQuery();
+  const { errorSnackbar } = useSnackbar();
 
   const user = useAuthUser();
-  const [openCartModal, setOpenCartModal] = useState<boolean | null>(null);
-  const [openPaymentModal, setOpenPaymentModal] = useState<boolean>(false);
-  const [openSuccessPaymentModal, setOpenSuccessPaymentModal] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [paymentToken, setPaymentToken] = useState<string>('');
-  const [paymentData, setPaymentData] = useState<ICreatePaymentData | null>(null);
-  const [orderId, setOrderId] = useState<number | null>(null);
-  const [selected, setSelected] = useState<IAppointment[]>([]);
   const isMobile = useIsMobile();
-  const { errorSnackbar, successSnackbar } = useSnackbar();
-  const navigate = useNavigate();
 
-  const [paymentId, setPaymentId] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selected, setSelected] = useState<IAppointment[]>([]);
+  const [openCartModal, setOpenCartModal] = useState<boolean | null>(null);
+  const [paymentData, setPaymentData] = useState<ICreatePaymentData | null>(null);
+  const [openSuccessPaymentModal, setOpenSuccessPaymentModal] = useState<boolean>(false);
+
+  const appointmentsIds = useMemo(() => selected.map(item => item.id), [selected]);
+
+  const handleTableLoad = () => {
+    if (params.openCartModal && openCartModal === null) {
+      setOpenCartModal(true);
+    }
+  };
 
   const handleRemoveItem = (item: IAppointment) => {
     const newSelectedItems = selected.filter(({ id }) => id !== item.id);
@@ -45,8 +54,6 @@ const WaitingForPayment = ({
       setOpenCartModal(false);
     }
   };
-
-  const appointmentsIds = useMemo(() => selected.map(item => item.id), [selected]);
 
   const handleCreatePayment = async () => {
     if (!user) return void 0;
@@ -70,59 +77,16 @@ const WaitingForPayment = ({
     } finally {
       setLoading(false);
     }
-
-    // try {
-    //   setLoading(true);
-    //   const { client_secret, status, order_id } = await AppointmentApi.createPayment({
-    //     items: selected.map(({ id }) => id),
-    //   });
-    //
-    //   if (status) {
-    //     setPaymentToken(client_secret);
-    //     setOrderId(order_id);
-    //     setOpenCartModal(false);
-    //     setOpenPaymentModal(true);
-    //   } else {
-    //     errorSnackbar('Error while checking out!');
-    //   }
-    // } catch (e) {
-    //   errorSnackbar('Error while checking out!');
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
-  const handleCompletePayment = async () => {
-    if (orderId) {
-      try {
-        setLoading(true);
-        const { status } = await AppointmentApi.completePayment({
-          items: selected.map(({ id }) => id),
-          client_secret: paymentToken,
-          order_id: orderId,
-        });
-
-        if (status) {
-          setPaymentToken('');
-          setOpenPaymentModal(false);
-          setOpenSuccessPaymentModal(true);
-          setSelected([]);
-          onTabChange(BookingsTabs.UPCOMING);
-        } else {
-          errorSnackbar('Error while paying appointments!');
-        }
-      } catch (e) {
-        errorSnackbar('Error while paying appointments!');
-      } finally {
-        setLoading(false);
-      }
-    }
+  const handleError = (response: IErrorTransaction) => {
+    console.log("ERROR", response);
   };
 
-  const handleTableLoad = () => {
-    if (params.openCartModal && openCartModal === null) {
-      setOpenCartModal(true);
-    }
+  const handleSuccess = (response: ISuccessTransaction) => {
+    console.log("SUCCESS", response);
+    setPaymentData(null);
+    setOpenSuccessPaymentModal(true);
   };
 
   return (
@@ -132,13 +96,13 @@ const WaitingForPayment = ({
         updateListRef={(method) => (updateListRef.current = method)}
         actions={() => [
           {
-            label: 'Cancel',
-            color: 'info',
+            label: "Cancel",
+            color: "info",
             onClick: onCancelAppointmentOpen,
           },
           {
-            label: 'Edit',
-            variant: 'contained',
+            label: "Edit",
+            variant: "contained",
             onClick: onUpdateAppointmentOpen,
           },
         ]}
@@ -146,8 +110,8 @@ const WaitingForPayment = ({
         onSelect={setSelected}
         onLoad={handleTableLoad}
         selectedAction={
-          <Button sx={{ width: isMobile ? '100%' : 'auto' }} variant="contained" onClick={() => setOpenCartModal(true)}>
-            Review and pay (selected {selected.length} appointment{selected.length > 1 ? 's' : ''})
+          <Button sx={{ width: isMobile ? "100%" : "auto" }} variant="contained" onClick={() => setOpenCartModal(true)}>
+            Review and pay (selected {selected.length} appointment{selected.length > 1 ? "s" : ""})
           </Button>
         }
       />
@@ -159,7 +123,14 @@ const WaitingForPayment = ({
         onClose={() => setOpenCartModal(false)}
         onSubmit={handleCreatePayment}
       />
-      {paymentData && <MedipassPayment paymentData={paymentData} />}
+
+      {paymentData && (
+        <MedipassPayment
+          onError={handleError}
+          onSuccess={handleSuccess}
+          paymentData={paymentData}
+        />
+      )}
       <SuccessPaymentModal
         open={openSuccessPaymentModal}
         onClose={() => setOpenSuccessPaymentModal(false)}
