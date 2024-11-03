@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import isFunction from "lodash/isFunction";
 import medipassSDK from "@medipass/partner-sdk";
+
 import * as Interfaces from "./interfaces";
-import { EmptyFunction } from "../../common/constants";
+import { EmptyFunction } from "common/constants";
 
 interface IUseMedipassHook {
   token: string
@@ -48,7 +49,7 @@ export const useMedipass = ({
       },
       {
         version: "3",
-        allowEdit: true,
+        allowEdit: false,
         onError,
         onCancel,
         onSuccess,
