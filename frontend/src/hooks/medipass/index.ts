@@ -50,6 +50,7 @@ export const useMedipass = ({
       {
         version: "3",
         allowEdit: false,
+        disableModifyServiceItems: true,
         onError,
         onCancel,
         onSuccess,

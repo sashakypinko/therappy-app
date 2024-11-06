@@ -7,6 +7,10 @@ import * as queries from "./queries";
 export class AppointmentsService {
   constructor(private appointmentManager: EntityManager) {}
 
+  async moveToPending(ids: Array<number>) {
+    await this.appointmentManager.query(queries.UPDATE_STATUS_TO_PENDING, [ids]);
+  }
+
   async collectAmount(ids: Array<number>): Promise<number> {
     const result = await this.appointmentManager.query(queries.FIND_BY_IDS, [ids]);
 

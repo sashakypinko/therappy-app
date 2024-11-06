@@ -9,6 +9,8 @@ import {
   ISuccessTransaction
 } from "hooks/medipass/interfaces";
 
+import { IUser } from "services/api/user/dto/user.dto";
+
 import * as Styled from "./styled";
 
 interface IPayment {
@@ -18,6 +20,7 @@ interface IPayment {
 }
 
 export interface IMedipassPayment {
+  user: IUser
   paymentData: IPayment
   onError(response: IErrorTransaction): void
   onSuccess(response: ISuccessTransaction): void
@@ -27,6 +30,7 @@ export interface IMedipassPayment {
 }
 
 export const MedipassPayment = ({
+  user,
   onError,
   onSuccess,
   paymentData,
@@ -37,8 +41,12 @@ export const MedipassPayment = ({
     token: paymentData.token,
     transaction: {
       invoiceReference: "1",
-      providerNumber: "2429581T",
       chargeAmount: paymentData.amount,
+      patient: {
+        refId: user.id.toString(),
+        lastName: user.last_name,
+        firstName: user.first_name,
+      },
       paymentMethod: EPaymentMethod.NEW_PAYMENT_CARD
     },
     onError,
