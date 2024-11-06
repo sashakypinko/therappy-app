@@ -16,7 +16,7 @@ export class Payment {
   @Column() status: EPaymentStatus
 
   @Column({ nullable: true })
-  transaction_id: number | null
+  transaction_id: string | null
 
   @Column("json", { nullable: true })
   appointment_ids: number[];

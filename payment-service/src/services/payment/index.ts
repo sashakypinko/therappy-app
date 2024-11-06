@@ -15,6 +15,12 @@ export class PaymentService {
     private paymentRepository: Repository<Payment>,
   ) {}
 
+  async get(paymentId: number): Promise<Payment> {
+    return await this.paymentRepository.findOne({
+      where: { id: paymentId }
+    });
+  }
+
   async create(createPaymentDto: BasePaymentDto): Promise<Payment> {
     const {
       status,
@@ -35,7 +41,7 @@ export class PaymentService {
     return await this.paymentRepository.save(newPayment);
   }
 
-  async update(id: string, updatePaymentDto: UpdatePaymentDto) {
+  async update(id: number, updatePaymentDto: UpdatePaymentDto) {
     return await this.paymentRepository.update(id, updatePaymentDto);
   }
 

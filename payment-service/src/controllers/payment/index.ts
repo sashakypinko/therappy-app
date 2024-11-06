@@ -58,14 +58,40 @@ export class PaymentController {
   };
 
   @Post(Routes.CANCEL_PAYMENT)
-  async cancelPayment() {
+  async cancelPayment(@Body() cancelPaymentDto: DTO.CancelPaymentPayloadDto) {
+    const { payment_id, } = cancelPaymentDto;
 
-  }
+    try {
+      await this.paymentService.delete(payment_id);
+
+      return ApiResponse.success("Payment cancel successfully");
+    } catch (error) {
+      return ApiResponse.error("Failed to cancel payment", error);
+    }
+  };
 
   @Post(Routes.COMPLETE_PAYMENT)
-  async completePayment() {
+  async completedPayment(@Body() cancelPaymentDto: DTO.CompletedPaymentPayloadDto) {
+    const {
+      payment_id,
+      transaction_id
+    } = cancelPaymentDto;
 
-  }
+    try {
+      const payment = await this.paymentService.get(payment_id)
+
+      await this.appointmentService.moveToPending(payment.appointment_ids);
+
+      await this.paymentService.update(payment_id, {
+        transaction_id,
+        status: EPaymentStatus.COMPLETED,
+      });
+
+      return ApiResponse.success("Payment completed successfully");
+    } catch (error) {
+      return ApiResponse.error("Failed to complete payment", error);
+    }
+  };
 
   @Delete(`${Routes.DELETE_PAYMENT}/:id`)
   async deletePayment(@Param("id") id: string) {

@@ -30,8 +30,9 @@ export type TOnError = (response: IErrorTransaction) => void
 export type TSuccess = (response: ISuccessTransaction) => void
 
 export interface TTransactionAttributes {
+  patient?: any
   chargeAmount: string
-  providerNumber: string
+  providerNumber?: string
   invoiceReference: string
   paymentMethod: EPaymentMethod
 }
@@ -183,9 +184,7 @@ interface Payment {
   statementDescriptor?: string
 }
 
-export interface IErrorTransaction {
-
-}
+export type IErrorTransaction = string
 
 export interface ISuccessTransaction {
   staff: Staff

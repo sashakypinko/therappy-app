@@ -11,7 +11,7 @@ import Button from "../../../../../../common/ui/button";
 import useIsMobile from "../../../../../../hooks/use-is-mobile.hook";
 import AppointmentsList from "../../../../../../common/components/appointments-list";
 
-import { TabProps } from "../bookings";
+import { TabProps, BookingsTabs } from "../bookings";
 import { ICreatePaymentData } from "../../../../../../services/api/payment/dto";
 import { IErrorTransaction, ISuccessTransaction } from "hooks/medipass/interfaces";
 import { IAppointment } from "../../../../../../services/api/appointment/dto/appointment.dto";
@@ -23,6 +23,7 @@ import SuccessPaymentModal from "./success-payment-modal";
 import { MedipassPayment } from "./payment-modal/medipass-payment";
 
 const WaitingForPayment = ({
+  onTabChange,
   updateListRef,
   onUpdateAppointmentOpen,
   onCancelAppointmentOpen,
@@ -79,14 +80,38 @@ const WaitingForPayment = ({
     }
   };
 
-  const handleError = (response: IErrorTransaction) => {
-    console.log("ERROR", response);
+  const handleCancel = async () => {
+    if (paymentData) {
+      await PaymentApi.cancelPayment({ payment_id: paymentData.paymentId });
+    }
+
+    setPaymentData(null);
   };
 
-  const handleSuccess = (response: ISuccessTransaction) => {
-    console.log("SUCCESS", response);
+  const handleError = async (response: IErrorTransaction) => {
+    if (paymentData) {
+      await PaymentApi.cancelPayment({ payment_id: paymentData.paymentId });
+    }
+
+    setPaymentData(null);
+    errorSnackbar(response);
+  };
+
+  const handleSuccess = async (response: ISuccessTransaction) => {
+    if (paymentData) {
+      await PaymentApi.completePayment({
+        payment_id: paymentData.paymentId,
+        transaction_id: response.transactionId,
+      });
+    }
+
     setPaymentData(null);
     setOpenSuccessPaymentModal(true);
+  };
+
+  const handleCloseSuccess = () => {
+    setOpenSuccessPaymentModal(false);
+    onTabChange(BookingsTabs.UPCOMING);
   };
 
   return (
@@ -116,24 +141,25 @@ const WaitingForPayment = ({
         }
       />
       <CartModal
-        open={!!openCartModal}
         items={selected}
         loading={loading}
+        open={!!openCartModal}
         onRemove={handleRemoveItem}
-        onClose={() => setOpenCartModal(false)}
         onSubmit={handleCreatePayment}
+        onClose={() => setOpenCartModal(false)}
       />
-
-      {paymentData && (
+      {(paymentData && user) && (
         <MedipassPayment
+          user={user}
           onError={handleError}
+          onCancel={handleCancel}
           onSuccess={handleSuccess}
           paymentData={paymentData}
         />
       )}
       <SuccessPaymentModal
+        onClose={handleCloseSuccess}
         open={openSuccessPaymentModal}
-        onClose={() => setOpenSuccessPaymentModal(false)}
       />
     </>
   );
