@@ -93,11 +93,11 @@ export class PaymentController {
     }
   };
 
-  @Delete(`${Routes.DELETE_PAYMENT}/:id`)
+  @Delete(Routes.DELETE_PAYMENT)
   async deletePayment(@Param("id") id: string) {
-    await this.paymentService.delete(+id);
-
     try {
+      await this.paymentService.delete(+id);
+
       return ApiResponse.success("Payment deleted successfully");
     } catch (error) {
       return ApiResponse.error("Failed to delete payment", error);

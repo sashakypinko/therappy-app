@@ -1,4 +1,4 @@
-import { ReactElement, useRef, useState } from 'react';
+import {ReactElement, useRef, useState} from 'react';
 import { IAppointment } from '../../../../../../services/api/appointment/dto/appointment.dto';
 import AppointmentsModal from '../../../../../../common/components/modals/appointments-modal';
 import { AppointmentsModalTypes } from '../../../../../../common/components/modals/appointments-modal/appointments-modal';
@@ -10,11 +10,12 @@ import { UserTypesEnum } from '../../../../../../enums/user-types.enum';
 import { TabProps } from '../appointments';
 
 const AcceptedAppointments = ({ filters }: TabProps): ReactElement => {
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [appointment, setAppointment] = useState<IAppointment>(defaultAppointmentValue);
-  const [loading, setLoading] = useState<boolean>(false);
   const updateListRef = useRef<(() => void) | null>(null);
   const { successSnackbar, errorSnackbar } = useSnackbar();
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [appointment, setAppointment] = useState<IAppointment>(defaultAppointmentValue);
 
   const handleSetAppointment = (appointment: IAppointment) => {
     setAppointment(appointment);
