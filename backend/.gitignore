@@ -5,6 +5,7 @@
 /public/storage
 /storage/app/media
 /storage/*.key
+/storage/*.log
 /vendor
 .env
 .env.backup
@@ -18,3 +19,4 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/therappy-mysql-data
