@@ -1,0 +1,73 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: therappy-backend
+    tty: true
+    networks:
+      - therappy-network
+    volumes:
+      - ./backend:/var/www/html:delegated
+    ports:
+      - "80:80"
+      - "443:443"
+      - "9001:9000"
+      - "6001:6001"
+    depends_on:
+      - mysql
+    
+  payment-service:
+    build:
+      context: ./payment-service
+    container_name: therappy-payment-service
+    tty: true
+    networks:
+      - therappy-network
+    volumes:
+      - ./payment-service/.env:/app/.env
+    ports:
+      - "5000:3000"
+    depends_on:
+      - mysql
+        
+  frontend:
+    build:
+      context: ./frontend
+    container_name: therappy-frontend
+    tty: true
+    networks:
+      - therappy-network
+    volumes:
+      - ./frontend/.env:/app/.env
+    ports:
+      - "4000:4000"
+    depends_on:
+      - payment-service
+      - backend
+  
+  mysql:
+    image: mysql:5.7
+    container_name: therappy-db
+    tty: true
+    networks:
+      - therappy-network
+    volumes:
+      - ./backend/therappy-mysql-data:/var/lib/mysql
+      - ./backend/config/mysql:/etc/mysql/conf.d
+    environment:
+      MYSQL_DATABASE: therappy
+      MYSQL_USER: alex
+      MYSQL_PASSWORD: qwerty
+      MYSQL_ROOT_PASSWORD: qwerty
+    ports:
+      - "3306:3306"
+
+networks:
+  therappy-network:
+    driver: bridge
+
+volumes:
+  therappy-mysql-data:
+    driver: local
