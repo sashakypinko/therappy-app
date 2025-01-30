@@ -26,11 +26,7 @@
 /frontend/package-lock.json
 
 # ================ Backend ================
-/backend/app
-/backend/tests
 /backend/storage
-/backend/database/seeders
-/backend/database/factories
 
 /backend/.phpunit.cache
 /backend/node_modules
