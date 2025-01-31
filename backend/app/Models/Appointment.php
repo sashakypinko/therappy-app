@@ -17,6 +17,8 @@ class Appointment extends Model
     const STATUS_FINISHED = 4;
     const STATUS_CANCELLED = 5;
     const STATUS_DELETED = 6;
+    const STATUS_REFUND_PENDING = 7;
+    const STATUS_CANCEL_PENDING = 8;
 
     /**
      * The attributes that are mass assignable.

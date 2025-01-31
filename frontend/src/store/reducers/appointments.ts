@@ -11,6 +11,9 @@ import {
   REMOVE_APPOINTMENT_REQUEST,
   REMOVE_APPOINTMENT_SUCCESS,
   REMOVE_APPOINTMENT_FAILURE,
+  REQUEST_REFUND_APPOINTMENT_REQUEST,
+  REQUEST_REFUND_APPOINTMENT_SUCCESS,
+  REQUEST_REFUND_APPOINTMENT_FAILURE,
 } from '../actions/appointments';
 import { dataTableInitValue, AppointmentsState } from '../init-state';
 import type Action from '../actions/action.interface';
@@ -65,6 +68,15 @@ const appointments = (state: App.Store.Appointments = AppointmentsState, { type,
       return { ...state, updating: false, error: null };
 
     case REMOVE_APPOINTMENT_FAILURE:
+      return { ...state, updating: false, error: payload };
+
+    case REQUEST_REFUND_APPOINTMENT_REQUEST:
+      return { ...state, updating: true, error: null };
+
+    case REQUEST_REFUND_APPOINTMENT_SUCCESS:
+      return { ...state, updating: false, error: null };
+
+    case REQUEST_REFUND_APPOINTMENT_FAILURE:
       return { ...state, updating: false, error: payload };
 
     default:

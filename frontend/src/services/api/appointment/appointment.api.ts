@@ -37,6 +37,10 @@ class AppointmentApiService extends ApiService {
     return await this.post(`/${id}/customer-cancel`).then((res) => res.data);
   };
 
+  requestRefund = async (id: number): Promise<any> => {
+    return await this.post(`/${id}/request-refund`).then((res) => res.data);
+  };
+
   start = async (id: number): Promise<any> => {
     return await this.post(`/${id}/start`).then((res) => res.data);
   };

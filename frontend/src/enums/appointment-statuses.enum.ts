@@ -5,6 +5,9 @@ export enum AppointmentStatusesEnum {
   STARTED,
   FINISHED,
   CANCELED,
+  DELETED,
+  REFUND_PENDING,
+  CANCEL_PENDING,
 }
 
 export const AppointmentTimeLabels = {
@@ -13,5 +16,8 @@ export const AppointmentTimeLabels = {
   [AppointmentStatusesEnum.ACCEPTED]: 'Confirmed',
   [AppointmentStatusesEnum.STARTED]: 'Started',
   [AppointmentStatusesEnum.FINISHED]: 'Finished',
+  [AppointmentStatusesEnum.REFUND_PENDING]: 'Refund Pending',
+  [AppointmentStatusesEnum.CANCEL_PENDING]: 'Cancellation Pending',
   [AppointmentStatusesEnum.CANCELED]: 'Cancelled',
+  [AppointmentStatusesEnum.DELETED]: 'Deleted',
 };

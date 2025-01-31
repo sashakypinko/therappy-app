@@ -6,14 +6,12 @@ use App\Models\Appointment;
 use App\Models\AppointmentCancel;
 use App\Models\AppointmentInterval;
 use App\Models\AppointmentReview;
-use App\Models\Media;
 use App\Models\Service;
 use App\Models\User;
 use App\Models\UserBlocked;
 use App\Models\UserDetails;
 use App\Models\UserSchedule;
 use App\Models\UserScheduleOverrides;
-use App\Repositories\Media\MediaRepository;
 use App\Repositories\Services\ServicesRepository;
 use App\Repositories\Users\UsersRepository;
 use App\Services\Appointments\AppointmentsService;
@@ -21,10 +19,10 @@ use App\Services\DataTableService;
 use App\Services\Mail\MailService;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Eloquent implements AppointmentsRepository
 {
@@ -35,6 +33,8 @@ class Eloquent implements AppointmentsRepository
     public const TAB_REBOOKING = 'rebooking';
     public const TAB_UPCOMING = 'upcoming';
     public const TAB_PAST = 'past';
+    public const TAB_CANCEL_PENDING = 'cancelPending';
+
     public const TAB_CANCELLED = 'cancelled';
     public const TAB_CALENDAR = 'calendar';
     public const TAB_ALL = 'all';
@@ -44,20 +44,21 @@ class Eloquent implements AppointmentsRepository
         self::TAB_CART => [Appointment::STATUS_NEW],
         self::TAB_REBOOKING => [Appointment::STATUS_PENDING],
         self::TAB_UPCOMING => [Appointment::STATUS_APPROVED, Appointment::STATUS_PENDING],
-        self::TAB_PAST => [Appointment::STATUS_FINISHED, Appointment::STATUS_APPROVED, Appointment::STATUS_ACTIVE],
+        self::TAB_PAST => [Appointment::STATUS_FINISHED, Appointment::STATUS_APPROVED, Appointment::STATUS_ACTIVE, Appointment::STATUS_REFUND_PENDING],
         self::TAB_CANCELLED => [Appointment::STATUS_CANCELLED],
         self::TAB_CALENDAR => [Appointment::STATUS_APPROVED, Appointment::STATUS_ACTIVE, Appointment::STATUS_FINISHED],
+        self::TAB_CANCEL_PENDING => [Appointment::STATUS_CANCEL_PENDING],
         self::TAB_ALL => [],
     ];
 
     const DATATABLE_TYPE = 'appointments';
 
-	/**
-	 * Model
-	 *
-	 * @var Appointment
-	 */
-	protected Appointment $model;
+    /**
+     * Model
+     *
+     * @var Appointment
+     */
+    protected Appointment $model;
 
     /**
      * Cancel Model
@@ -129,11 +130,11 @@ class Eloquent implements AppointmentsRepository
      * @param MailService $mailService
      * @param UsersRepository $userService
      */
-    public function __construct(Appointment $model, AppointmentCancel $modelCancel, AppointmentReview $modelReview,
-                                UserBlocked $modelBlocked, AppointmentsService $service, ServicesRepository $serviceService,
+    public function __construct(Appointment      $model, AppointmentCancel $modelCancel, AppointmentReview $modelReview,
+                                UserBlocked      $modelBlocked, AppointmentsService $service, ServicesRepository $serviceService,
                                 DataTableService $dataTableService, MailService $mailService, UsersRepository $userService)
-	{
-		$this->model = $model;
+    {
+        $this->model = $model;
         $this->modelCancel = $modelCancel;
         $this->modelReview = $modelReview;
         $this->modelBlocked = $modelBlocked;
@@ -142,7 +143,7 @@ class Eloquent implements AppointmentsRepository
         $this->dataTableService = $dataTableService;
         $this->mailService = $mailService;
         $this->userService = $userService;
-	}
+    }
 
     /**
      * @param $id
@@ -150,14 +151,14 @@ class Eloquent implements AppointmentsRepository
      * @param array $with
      * @return Collection|Model
      */
-	public function byId($id, bool $withRelations = true, $with = []): Model|Collection
+    public function byId($id, bool $withRelations = true, $with = []): Model|Collection
     {
         if ($withRelations) {
             return $this->model->with($with)
                 ->findOrFail($id);
         }
         return $this->model->findOrFail($id);
-	}
+    }
 
     /**
      * @param array $ids
@@ -191,7 +192,7 @@ class Eloquent implements AppointmentsRepository
             ->select([
                 'appointments.*'
             ]);
-        switch ($request['tab']){
+        switch ($request['tab']) {
             case (self::TAB_FIND):
                 $request['filter']['date'] = $request['date'] ?? Carbon::today()->format('Y-m-d');
                 $builder = $this->datatableBlocked($builder);
@@ -253,17 +254,16 @@ class Eloquent implements AppointmentsRepository
                 'appointments.*'
             ]);
 
-        switch ($request['tab']){
+        switch ($request['tab']) {
             case (self::TAB_CART):
-                //$request['filter']['statuses'] = [Appointment::STATUS_NEW];
+                break;
+            case (self::TAB_CANCEL_PENDING):
                 break;
             case (self::TAB_UPCOMING):
                 $builder = $this->datatableAfterDate($builder);
-                //$request['filter']['statuses'] = [Appointment::STATUS_APPROVED, Appointment::STATUS_PAID];
                 break;
             case (self::TAB_PAST):
                 $builder = $this->datatableBeforeDate($builder);
-                //$request['filter']['statuses'] = [Appointment::STATUS_FINISHED];
                 break;
             case (self::TAB_CANCELLED):
                 $builder = $this->datatableCancelledCustomer($builder, $request);
@@ -273,7 +273,6 @@ class Eloquent implements AppointmentsRepository
                 $dt = Carbon::createFromFormat('Y-m-d', $request['start_date']);
                 $request['filter']['start_date'] = $dt->startOfMonth()->format('Y-m-d');
                 $request['filter']['end_date'] = $dt->endOfMonth()->format('Y-m-d');
-                //$request['filter']['statuses'] = [Appointment::STATUS_PAID, Appointment::STATUS_ACTIVE, Appointment::STATUS_FINISHED];
                 break;
             default:
                 break;
@@ -306,8 +305,8 @@ class Eloquent implements AppointmentsRepository
         $request['filter']['statuses'] = self::TABS_ARRAY[$request['tab']];
 
         $request['filter']['services_ids'] = isset($request['filter']['service_id']) ? [$request['filter']['service_id']] : [];
-        if(!$request['filter']['services_ids'] && (isset($request['filter']['category_id']) && $request['filter']['category_id'])){
-            $request['filter']['services_ids'] = $this->serviceService->getServicesByCategoryId((int) $request['filter']['category_id']);
+        if (!$request['filter']['services_ids'] && (isset($request['filter']['category_id']) && $request['filter']['category_id'])) {
+            $request['filter']['services_ids'] = $this->serviceService->getServicesByCategoryId((int)$request['filter']['category_id']);
             $request['filter']['services_ids'] = $request['filter']['services_ids'] ? $request['filter']['services_ids']->pluck('id') : [];
         }
 
@@ -316,7 +315,7 @@ class Eloquent implements AppointmentsRepository
                 'appointments.*'
             ]);
 
-        switch ($request['tab']){
+        switch ($request['tab']) {
             case (self::TAB_CART):
                 //$request['filter']['statuses'] = [Appointment::STATUS_NEW];
                 break;
@@ -355,8 +354,8 @@ class Eloquent implements AppointmentsRepository
     {
         $user = auth()->user();
         $model = $this->byId($id, false);
-        if(!$user || $model->therapist_id !== null ||
-            ($model->status !== Appointment::STATUS_PENDING)){
+        if (!$user || $model->therapist_id !== null ||
+            ($model->status !== Appointment::STATUS_PENDING)) {
             throw new Exception('This Appointment is already approved.');
         }
 
@@ -366,12 +365,12 @@ class Eloquent implements AppointmentsRepository
         $attributes['status'] = Appointment::STATUS_APPROVED;
 
         $isIntervalInSchedule = $this->checkIsIntervalInSchedule($user, $model, $attributes);
-        if(!$isIntervalInSchedule){
+        if (!$isIntervalInSchedule) {
             throw new Exception('Wrong time interval.');
         }
 
         $isIntervalOccupied = $this->checkIsIntervalOccupied($user, $model, $attributes);
-        if($isIntervalOccupied){
+        if ($isIntervalOccupied) {
             throw new Exception('This time is occupied.');
         }
 
@@ -395,7 +394,7 @@ class Eloquent implements AppointmentsRepository
     {
         $user = auth()->user();
         $model = $this->byId($id, false);
-        if(!$user || ($model->therapist_id !== $user->id && !$user->isAdmin()) ) throw new Exception('Wrong User.');
+        if (!$user || ($model->therapist_id !== $user->id && !$user->isAdmin())) throw new Exception('Wrong User.');
 
         $modelCancel = clone $this->modelCancel;
 
@@ -407,7 +406,7 @@ class Eloquent implements AppointmentsRepository
         $modelCancel->save();
 
         $attributes['therapist_id'] = null;
-        if($model->status === Appointment::STATUS_APPROVED) $attributes['status'] = Appointment::STATUS_PENDING;
+        if ($model->status === Appointment::STATUS_APPROVED) $attributes['status'] = Appointment::STATUS_PENDING;
 
         $model->fill($attributes);
         $model->save();
@@ -418,19 +417,49 @@ class Eloquent implements AppointmentsRepository
     /**
      * @throws Exception
      */
-    public function customerCancel($id, $request): ?bool
+    public function customerCancel($id): ?bool
     {
         $user = auth()->user();
         $model = $this->byId($id, false);
 
-        if(!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
-        if( !($model->status === Appointment::STATUS_APPROVED || $model->status === Appointment::STATUS_PENDING || $model->status === Appointment::STATUS_NEW) ) throw new Exception('Wrong Status.');
+        if (!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
 
-        if($model->status === Appointment::STATUS_NEW){
+        if (!in_array($model->status, [Appointment::STATUS_APPROVED, Appointment::STATUS_PENDING, Appointment::STATUS_NEW])) {
+            throw new Exception('Wrong status.');
+        }
+
+        if ($model->status === Appointment::STATUS_NEW) {
             return $model->delete();
         }
 
-        $attributes['status'] = Appointment::STATUS_CANCELLED;
+        $attributes['status'] = Appointment::STATUS_CANCEL_PENDING;
+
+        $model->fill($attributes);
+        $model->save();
+
+        return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function requestRefund($id): ?bool
+    {
+        $user = auth()->user();
+        $model = $this->byId($id, false);
+
+        if (!$user || $model->user_id !== $user->id) throw new Exception('Forbidden.');
+
+        if (!in_array($model->status, [Appointment::STATUS_FINISHED])) {
+            throw new Exception('Wrong status.');
+        }
+
+        if (Carbon::createFromFormat('Y-m-d', $model->date)->isBefore(Carbon::today()->subtract('week', 2))) {
+            throw new Exception('Refund is not allowed.');
+        }
+
+        $attributes['status'] = Appointment::STATUS_REFUND_PENDING;
+
         $model->fill($attributes);
         $model->save();
 
@@ -445,8 +474,8 @@ class Eloquent implements AppointmentsRepository
         $user = auth()->user();
         $model = $this->byId($id, false);
 
-        if(!$user || $model->therapist_id !== $user->id) throw new Exception('Wrong User.');
-        if($model->status !== Appointment::STATUS_APPROVED) throw new Exception('Wrong Status.');
+        if (!$user || $model->therapist_id !== $user->id) throw new Exception('Wrong User.');
+        if ($model->status !== Appointment::STATUS_APPROVED) throw new Exception('Wrong Status.');
 
         $attributes['status'] = Appointment::STATUS_ACTIVE;
 
@@ -464,8 +493,8 @@ class Eloquent implements AppointmentsRepository
         $user = auth()->user();
         $model = $this->byId($id, false);
 
-        if(!$user || $model->therapist_id !== $user->id) throw new Exception('Wrong User.');
-        if($model->status !== Appointment::STATUS_ACTIVE) throw new Exception('Wrong Status.');
+        if (!$user || $model->therapist_id !== $user->id) throw new Exception('Wrong User.');
+        if ($model->status !== Appointment::STATUS_ACTIVE) throw new Exception('Wrong Status.');
 
         $attributes['status'] = Appointment::STATUS_FINISHED;
 
@@ -485,8 +514,8 @@ class Eloquent implements AppointmentsRepository
         $user = auth()->user();
         $model = $this->byId($id, false);
 
-        if(!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
-        if($model->status !== Appointment::STATUS_NEW) throw new Exception('Wrong Status.');
+        if (!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
+        if ($model->status !== Appointment::STATUS_NEW) throw new Exception('Wrong Status.');
 
         $attributes['status'] = Appointment::STATUS_PENDING;
 
@@ -504,15 +533,15 @@ class Eloquent implements AppointmentsRepository
         $user = auth()->user();
         $request['items'] = $request['items'] ?? [];
         $items = [];
-        foreach($request['items'] as $appointmentId){
+        foreach ($request['items'] as $appointmentId) {
             $model = $this->byId($appointmentId, false);
-            if(!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
-            if($model->status !== Appointment::STATUS_NEW) throw new Exception('Wrong Status.');
+            if (!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
+            if ($model->status !== Appointment::STATUS_NEW) throw new Exception('Wrong Status.');
             $items[] = $model;
         }
 
         $attributes['status'] = Appointment::STATUS_PENDING;
-        foreach($items as $item){
+        foreach ($items as $item) {
             $item->fill($attributes);
             $item->save();
         }
@@ -531,12 +560,12 @@ class Eloquent implements AppointmentsRepository
         $authorId = $user->type === User::TYPE_THERAPIST ? $model->therapist_id : $model->user_id;
         $targetId = $user->type === User::TYPE_THERAPIST ? $model->user_id : $model->therapist_id;
 
-        if(!$user || $authorId !== $user->id) throw new Exception('Wrong User.');
-        if($model->status !== Appointment::STATUS_FINISHED) throw new Exception('Wrong Status.');
+        if (!$user || $authorId !== $user->id) throw new Exception('Wrong User.');
+        if ($model->status !== Appointment::STATUS_FINISHED) throw new Exception('Wrong Status.');
 
         $existingReview = $this->modelReview->where('user_id', $user->id)->where('appointment_id', $id)->first();
 
-        if($existingReview) {
+        if ($existingReview) {
             throw new Exception('You have already left a review!');
         }
 
@@ -554,21 +583,21 @@ class Eloquent implements AppointmentsRepository
         return $modelReview;
     }
 
-	/**
-	 * Stores a resource.
-	 *
-	 * @param  array $attributes
-	 * @return Appointment
-	 */
-	public function store(array $attributes): Appointment
+    /**
+     * Stores a resource.
+     *
+     * @param array $attributes
+     * @return Appointment
+     */
+    public function store(array $attributes): Appointment
     {
         $model = clone $this->model;
 
         $model->fill($attributes);
         $model->save();
 
-		return $model;
-	}
+        return $model;
+    }
 
     /**
      * @param array $attributes
@@ -588,7 +617,7 @@ class Eloquent implements AppointmentsRepository
         $attributes['price'] = Service::TYPES[$attributes['type']]['price'] ?? 199;
 
         $model = $this->store($attributes);
-        foreach($attributes['intervals'] as $interval){
+        foreach ($attributes['intervals'] as $interval) {
             $interval['appointment_id'] = $model->id;
             $intervalModel = new AppointmentInterval();
             $intervalModel->fill($interval);
@@ -610,20 +639,20 @@ class Eloquent implements AppointmentsRepository
     {
         $user = auth()->user();
         $model = $this->byId($id, false);
-        if(!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
-        if(is_null($model->therapist_id)) throw new Exception('Wrong Appointment.');
-        if( $attributes['date'] <= Carbon::today()->format('Y-m-d') ) throw new Exception('Wrong Date.');
+        if (!$user || $model->user_id !== $user->id) throw new Exception('Wrong User.');
+        if (is_null($model->therapist_id)) throw new Exception('Wrong Appointment.');
+        if ($attributes['date'] <= Carbon::today()->format('Y-m-d')) throw new Exception('Wrong Date.');
 
         $model = $this->byId($id, false);
         $therapist = $model->therapist();
-        $model = (object) ['date' => $attributes['date'], 'start' => $attributes['start'], 'end' => $attributes['end']];
+        $model = (object)['date' => $attributes['date'], 'start' => $attributes['start'], 'end' => $attributes['end']];
         $isIntervalInSchedule = $this->checkIsIntervalInSchedule($therapist, $model, $attributes);
-        if(!$isIntervalInSchedule){
+        if (!$isIntervalInSchedule) {
             throw new Exception('Wrong time interval.');
         }
 
         $isIntervalOccupied = $this->checkIsIntervalOccupied($therapist, $model, $attributes);
-        if($isIntervalOccupied){
+        if ($isIntervalOccupied) {
             throw new Exception('This time is occupied.');
         }
 
@@ -643,19 +672,19 @@ class Eloquent implements AppointmentsRepository
     {
         $user = auth()->user();
         $model = $this->byId($id, true, ['intervals']);
-        if( !($model->status === Appointment::STATUS_NEW || $model->status === Appointment::STATUS_PENDING || $user->isAdmin()) ) {
+        if (!($model->status === Appointment::STATUS_NEW || $model->status === Appointment::STATUS_PENDING || $user->isAdmin())) {
             throw new Exception('Wrong Appointment.');
         }
 
-        if( !($user->isAdmin() || $model->user_id === $user->id || $model->therapist_id === $user->id) ){
+        if (!($user->isAdmin() || $model->user_id === $user->id || $model->therapist_id === $user->id)) {
             throw new Exception('Permission error');
         }
 
-        foreach($model->intervals as $item){
+        foreach ($model->intervals as $item) {
             $item->delete();
         }
 
-        foreach($attributes['intervals'] as $interval){
+        foreach ($attributes['intervals'] as $interval) {
             $interval['appointment_id'] = $model->id;
             $intervalModel = new AppointmentInterval();
             $intervalModel->fill($interval);
@@ -690,11 +719,11 @@ class Eloquent implements AppointmentsRepository
      *
      * @param  $id
      */
-	public function destroy($id)
+    public function destroy($id)
     {
         $model = $this->byId($id, false);
         $model->delete();
-	}
+    }
 
     private function datatableFilter($query, $request)
     {
@@ -716,15 +745,15 @@ class Eloquent implements AppointmentsRepository
                 })
             ->when(isset($request['filter']['statuses']) && is_array($request['filter']['statuses']) && $request['filter']['statuses'] !== [],
                 function ($query) use ($request) {
-                    $query->where(function($qOr) use ($request) {
-                        foreach($request['filter']['statuses'] as $status) {
+                    $query->where(function ($qOr) use ($request) {
+                        foreach ($request['filter']['statuses'] as $status) {
                             $qOr->orWhere('appointments.status', $status);
                         }
                     });
 
                     return $query;
                 })
-            ->when(isset($request['filter']['services_ids']) && $request['filter']['services_ids'] !== [] ,
+            ->when(isset($request['filter']['services_ids']) && $request['filter']['services_ids'] !== [],
                 function ($query) use ($request) {
                     return $query->whereIn('appointments.service_id', $request['filter']['services_ids']);
                 });
@@ -738,31 +767,31 @@ class Eloquent implements AppointmentsRepository
         $value = $request['date'] ?? Carbon::today()->format('Y-m-d');
         //$value = $request['date'] ?? '';
 
-        if($value !== '') {
+        if ($value !== '') {
             $user = auth()->user();
             $schedule = $this->getActualScheduleByDate($user, $value);
-            if(!$schedule->count()) return $query->where('id', 0);
+            if (!$schedule->count()) return $query->where('id', 0);
 
-            $query->whereHas('intervals', function($qInterval) use ($schedule){
-                $qInterval->where(function($qInt) use ($schedule){
-                    $qInt->orWhere(function($q) use ($schedule){
-                        foreach($schedule as $interval){
+            $query->whereHas('intervals', function ($qInterval) use ($schedule) {
+                $qInterval->where(function ($qInt) use ($schedule) {
+                    $qInt->orWhere(function ($q) use ($schedule) {
+                        foreach ($schedule as $interval) {
                             $dt = Carbon::today();
-                            $start = $interval->start ? Carbon::createFromFormat('Y-m-d H:i:s', $dt->format('Y-m-d').' '.$interval->start)->diffInMinutes($dt) : 0;
-                            $end = $interval->end ? Carbon::createFromFormat('Y-m-d H:i:s', $dt->format('Y-m-d').' '.$interval->end)->diffInMinutes($dt) : 0;
+                            $start = $interval->start ? Carbon::createFromFormat('Y-m-d H:i:s', $dt->format('Y-m-d') . ' ' . $interval->start)->diffInMinutes($dt) : 0;
+                            $end = $interval->end ? Carbon::createFromFormat('Y-m-d H:i:s', $dt->format('Y-m-d') . ' ' . $interval->end)->diffInMinutes($dt) : 0;
 
                             $q->where('start', '>=', $start); // user 8-12, therapist 7-9
                             $q->where('start', '<=', $end - 60);
 
-                            $q->orWhere(function($qOr) use ($start, $end) {
+                            $q->orWhere(function ($qOr) use ($start, $end) {
                                 $qOr->where('end', '>=', $start + 60); // user 8-12, therapist 11-14
                                 $qOr->where('end', '<=', $end);
                             });
-                            $q->orWhere(function($qOr) use ($start, $end) {
+                            $q->orWhere(function ($qOr) use ($start, $end) {
                                 $qOr->where('start', '>=', $start); // user 8-12, therapist 7-13
                                 $qOr->where('end', '<=', $end);
                             });
-                            $q->orWhere(function($qOr) use ($start, $end) {
+                            $q->orWhere(function ($qOr) use ($start, $end) {
                                 $qOr->where('start', '<=', $start); // user 8-12, therapist 9-11
                                 $qOr->where('end', '>=', $end);
                             });
@@ -780,8 +809,8 @@ class Eloquent implements AppointmentsRepository
 
         $user = auth()->user();
         $details = $user?->details;
-        if($details && !is_null($details->longitude) && !is_null($details->latitude) ) {
-            $query->select("appointments.*" , DB::raw("(" . self::EARTH_RADIUS . " * acos(cos(radians('" . $details->latitude . "')) * cos(radians(appointments.latitude)) * cos( radians(appointments.longitude) - radians('" . $details->longitude . "')) + sin(radians('" . $details->latitude . "')) * sin(radians(appointments.latitude))))
+        if ($details && !is_null($details->longitude) && !is_null($details->latitude)) {
+            $query->select("appointments.*", DB::raw("(" . self::EARTH_RADIUS . " * acos(cos(radians('" . $details->latitude . "')) * cos(radians(appointments.latitude)) * cos( radians(appointments.longitude) - radians('" . $details->longitude . "')) + sin(radians('" . $details->latitude . "')) * sin(radians(appointments.latitude))))
             AS distance"))
                 ->whereRaw("(" . self::EARTH_RADIUS . " * acos(cos(radians('" . $details->latitude . "')) * cos(radians(appointments.latitude)) * cos( radians(appointments.longitude) - radians('" . $details->longitude . "')) + sin(radians('" . $details->latitude . "')) * sin(radians(appointments.latitude))))
             <= ?", [$details->radius]);
@@ -794,7 +823,7 @@ class Eloquent implements AppointmentsRepository
     {
         $user = auth()->user();
         $blockedUserIds = $this->modelBlocked->where('user_id', $user->id)->get()->pluck('target_id');
-        if($blockedUserIds->count()){
+        if ($blockedUserIds->count()) {
             $query->whereRaw('appointments.user_id NOT IN(?)', [$blockedUserIds]);
         }
 
@@ -803,10 +832,10 @@ class Eloquent implements AppointmentsRepository
 
     private function datatableRebooked($query, $request)
     {
-        if($request['tab'] === self::TAB_REBOOKING) {
+        if ($request['tab'] === self::TAB_REBOOKING) {
             $user = auth()->user();
             $query->where('appointments.preferred_therapist_id', $user->id);
-        }else{
+        } else {
             $query->whereRaw('appointments.preferred_therapist_id IS NULL', []);
         }
 
@@ -816,13 +845,13 @@ class Eloquent implements AppointmentsRepository
     private function datatableUser($query, $request, $field = 'therapist_id')
     {
         $user = auth()->user();
-        if(isset($request['user_id'])) $user = (object) ['id' => $request['user_id']];
+        if (isset($request['user_id'])) $user = (object)['id' => $request['user_id']];
 
         $query->where(function ($query) use ($request, $user, $field) {
-            if( $request['tab'] === self::TAB_FIND || $request['tab'] === self::TAB_REBOOKING){
-                $query->whereRaw('appointments.'.$field.' IS NULL', []);
-            }else{
-                $query->where('appointments.'.$field, $user->id);
+            if ($request['tab'] === self::TAB_FIND || $request['tab'] === self::TAB_REBOOKING) {
+                $query->whereRaw('appointments.' . $field . ' IS NULL', []);
+            } else {
+                $query->where('appointments.' . $field, $user->id);
             }
         });
 
@@ -846,11 +875,11 @@ class Eloquent implements AppointmentsRepository
     {
         $user = auth()->user();
 
-/*
-        $query->orWhere(function ($qOr) use ($user) {
-            $qOr->whereHas('cancels');
-        });
-*/
+        /*
+                $query->orWhere(function ($qOr) use ($user) {
+                    $qOr->whereHas('cancels');
+                });
+        */
         return $query;
     }
 
@@ -859,7 +888,7 @@ class Eloquent implements AppointmentsRepository
         $user = auth()->user();
 
         $query->whereHas('user.details', function ($q) use ($user) {
-            if( $user->details->preferred_gender !== UserDetails::GENDER_ALL ){
+            if ($user->details->preferred_gender !== UserDetails::GENDER_ALL) {
                 $q->where('gender', $user->details->preferred_gender);
             }
             $q->where(function ($qGender) use ($user) {
@@ -874,7 +903,7 @@ class Eloquent implements AppointmentsRepository
     private function datatableSearch($query, $request)
     {
         $value = $request['search']['value'] ?? '';
-        if($value !== '') {
+        if ($value !== '') {
             $query->where(function ($query) use ($value, $request) {
                 $query->where('appointments.name', 'LIKE', '%' . $value . '%');
             });
@@ -906,9 +935,9 @@ class Eloquent implements AppointmentsRepository
     public function getActualScheduleByDate($user, $date)
     {
         $scheduleOverrides = UserScheduleOverrides::where('user_id', $user->id)->where('date', $date)->get();
-        if($scheduleOverrides->count()) return $scheduleOverrides;
+        if ($scheduleOverrides->count()) return $scheduleOverrides;
 
-        $day = (int) Carbon::createFromFormat('Y-m-d', $date)->format('w') + 1;
+        $day = (int)Carbon::createFromFormat('Y-m-d', $date)->format('w') + 1;
 
         return UserSchedule::where('user_id', $user->id)->where('day', $day)->get();
     }
@@ -924,10 +953,10 @@ class Eloquent implements AppointmentsRepository
         $start = $this->service->transformTimeToMinutesDiff($attributes['start']);
         $end = $this->service->transformTimeToMinutesDiff($attributes['end']);
 
-        foreach($schedule as $interval) {
+        foreach ($schedule as $interval) {
             $intervalStart = $this->service->transformTimeToMinutesDiff($interval->start);
             $intervalEnd = $this->service->transformTimeToMinutesDiff($interval->end);
-            if($intervalStart <= $start && $intervalEnd >= $end) {
+            if ($intervalStart <= $start && $intervalEnd >= $end) {
                 $isIntervalInSchedule = true;
                 break;
             }
@@ -947,10 +976,10 @@ class Eloquent implements AppointmentsRepository
         $isIntervalOccupied = false;
 
         $appointments = $this->datatable(['tab' => self::TAB_CALENDAR, 'date' => $appointment->date, 'user_id' => $user->id]);
-        foreach($appointments as $appointment) {
+        foreach ($appointments as $appointment) {
             $appointmentStart = $this->service->transformTimeToMinutesDiff($appointment->start);
             $appointmentEnd = $this->service->transformTimeToMinutesDiff($appointment->end);
-            if( ($appointmentStart <= $start && $appointmentEnd > $start) ||
+            if (($appointmentStart <= $start && $appointmentEnd > $start) ||
                 ($appointmentStart >= $start && $appointmentEnd <= $end) ||
                 ($appointmentStart < $end && $appointmentEnd >= $end)
             ) {
@@ -967,31 +996,31 @@ class Eloquent implements AppointmentsRepository
      */
     public function getAvailableScheduleForDate($attributes)
     {
-        $user = (object) ['id' => $attributes['therapist_id']];
+        $user = (object)['id' => $attributes['therapist_id']];
         $date = $attributes['date'] ?? Carbon::today()->format('Y-m-d');
         $schedule = $this->getActualScheduleByDate($user, $date);
         $appointments = $this->datatable(['tab' => self::TAB_CALENDAR, 'date' => $date, 'user_id' => $user->id]);
 
-        foreach($appointments as $appointment) {
+        foreach ($appointments as $appointment) {
             $appointmentStart = $this->service->transformTimeToMinutesDiff($appointment->start);
             $appointmentEnd = $this->service->transformTimeToMinutesDiff($appointment->end);
 
-            foreach($schedule as $key => &$interval){
+            foreach ($schedule as $key => &$interval) {
                 $start = $this->service->transformTimeToMinutesDiff($interval->start);
                 $end = $this->service->transformTimeToMinutesDiff($interval->end);
 
-                if( ($appointmentStart <= $start && $appointmentEnd > $start) ||
+                if (($appointmentStart <= $start && $appointmentEnd > $start) ||
                     ($appointmentStart >= $start && $appointmentEnd <= $end) ||
                     ($appointmentStart < $end && $appointmentEnd >= $end)
                 ) {
-                    if($appointmentStart <= $start && $appointmentEnd > $start){
+                    if ($appointmentStart <= $start && $appointmentEnd > $start) {
                         $interval->start = $appointment->end;
                     }
-                    if($appointmentStart < $end && $appointmentEnd >= $end){
+                    if ($appointmentStart < $end && $appointmentEnd >= $end) {
                         $interval->end = $appointment->start;
                     }
-                    if($appointmentStart >= $start && $appointmentEnd <= $end){
-                        $schedule[] = (object) ['start' => $appointment->end, 'end' => $interval->end];
+                    if ($appointmentStart >= $start && $appointmentEnd <= $end) {
+                        $schedule[] = (object)['start' => $appointment->end, 'end' => $interval->end];
                         $interval->end = $appointment->start;
                     }
                 }
@@ -1000,11 +1029,11 @@ class Eloquent implements AppointmentsRepository
 
         }
 
-        foreach($schedule as $key => $interval) {
+        foreach ($schedule as $key => $interval) {
             $start = $this->service->transformTimeToMinutesDiff($interval->start);
             $end = $this->service->transformTimeToMinutesDiff($interval->end);
 
-            if($start >= ($end - 60) ){
+            if ($start >= ($end - 60)) {
                 unset($schedule[$key]);
             }
         }

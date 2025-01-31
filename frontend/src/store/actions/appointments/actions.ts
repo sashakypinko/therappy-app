@@ -12,6 +12,9 @@ import {
   REMOVE_APPOINTMENT_REQUEST,
   REMOVE_APPOINTMENT_SUCCESS,
   REMOVE_APPOINTMENT_FAILURE,
+  REQUEST_REFUND_APPOINTMENT_REQUEST,
+  REQUEST_REFUND_APPOINTMENT_SUCCESS,
+  REQUEST_REFUND_APPOINTMENT_FAILURE,
 } from './action-types';
 import { DataTableResponse } from '../../../interfaces/data-table-response.interface';
 import { IAppointment } from '../../../services/api/appointment/dto/appointment.dto';
@@ -102,5 +105,23 @@ export const removeAppointmentSuccess = (): Action => ({
 
 export const removeAppointmentError = (error: any): Action => ({
   type: REMOVE_APPOINTMENT_FAILURE,
+  payload: error,
+});
+
+export const requestRefundAppointment = (id: number, onSuccess: () => void, onError?: (errors: any) => void): Action => ({
+  type: REQUEST_REFUND_APPOINTMENT_REQUEST,
+  payload: id,
+  meta: {
+    onSuccess,
+    onError,
+  },
+});
+
+export const requestRefundAppointmentSuccess = (): Action => ({
+  type: REQUEST_REFUND_APPOINTMENT_SUCCESS,
+});
+
+export const requestRefundAppointmentError = (error: any): Action => ({
+  type: REQUEST_REFUND_APPOINTMENT_FAILURE,
   payload: error,
 });
