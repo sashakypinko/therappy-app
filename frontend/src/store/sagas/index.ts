@@ -26,7 +26,7 @@ import { GET_PROVIDERS_REQUEST, UPDATE_PROVIDER_REQUEST, DELETE_PROVIDER_REQUEST
 import {
   CREATE_APPOINTMENT_REQUEST,
   GET_APPOINTMENTS_REQUEST,
-  REMOVE_APPOINTMENT_REQUEST,
+  REMOVE_APPOINTMENT_REQUEST, REQUEST_REFUND_APPOINTMENT_REQUEST,
   UPDATE_APPOINTMENT_REQUEST,
 } from '../actions/appointments';
 import { GET_CLIENTS_REQUEST, UPDATE_CLIENT_REQUEST, DELETE_CLIENT_REQUEST } from '../actions/clients';
@@ -44,7 +44,7 @@ import {
 import { getServices, updateService, deleteService, createService } from './services';
 import { getUsers, updateUser, deleteUser, getAdditionalList } from "./users";
 import { getProviders, updateProvider, deleteProvider } from './providers';
-import { createAppointment, getAppointments, removeAppointment, updateAppointment } from './appointments';
+import {createAppointment, getAppointments, removeAppointment, requestRefund, updateAppointment} from './appointments';
 import { deleteClient, getClients, updateClient } from './clients';
 
 function* rootSaga() {
@@ -80,6 +80,7 @@ function* rootSaga() {
     takeEvery(CREATE_APPOINTMENT_REQUEST, createAppointment),
     takeEvery(UPDATE_APPOINTMENT_REQUEST, updateAppointment),
     takeEvery(REMOVE_APPOINTMENT_REQUEST, removeAppointment),
+    takeEvery(REQUEST_REFUND_APPOINTMENT_REQUEST, requestRefund),
   ]);
 }
 

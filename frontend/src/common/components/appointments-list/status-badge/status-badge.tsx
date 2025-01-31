@@ -18,6 +18,8 @@ const getColorByStatus = (status: AppointmentStatusesEnum) => {
       return 'primary';
     case AppointmentStatusesEnum.PENDING:
       return 'warning';
+    case AppointmentStatusesEnum.CANCEL_PENDING:
+      return 'warning';
     case AppointmentStatusesEnum.ACCEPTED:
       return 'success';
     case AppointmentStatusesEnum.STARTED:

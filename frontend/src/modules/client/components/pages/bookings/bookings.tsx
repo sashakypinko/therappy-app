@@ -20,12 +20,14 @@ import { appendIntervals } from '../../../../../helpers/appointment.helper';
 import { updateAppointment } from '../../../../../store/actions/appointments';
 import { useDispatch } from 'react-redux';
 import { UserTypesEnum } from '../../../../../enums/user-types.enum';
+import CancelPending from './cancel-pending';
 
 export enum BookingsTabs {
   WAITING_FOR_PAYMENT,
   UPCOMING,
   PAST,
   CANCELLED,
+  CANCEL_PENDING,
 }
 
 export interface TabProps {
@@ -43,6 +45,7 @@ const tabComponents: { [key: number]: FC<TabProps> } = {
   [BookingsTabs.WAITING_FOR_PAYMENT]: WaitingForPayment,
   [BookingsTabs.UPCOMING]: Upcoming,
   [BookingsTabs.PAST]: Past,
+  [BookingsTabs.CANCEL_PENDING]: CancelPending,
   [BookingsTabs.CANCELLED]: Cancelled,
 };
 
@@ -114,6 +117,22 @@ const Bookings = (): ReactElement => {
     }
   };
 
+  const handleRequestRefund = async () => {
+    if (showAppointment) {
+      setLoading(true);
+      try {
+        await AppointmentApi.requestRefund(showAppointment.id);
+        successSnackbar('Refund requested successfully');
+        handleListUpdate();
+        setShowAppointment(null);
+      } catch (e) {
+        errorSnackbar('Error while sending a refund request!');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const handleSendFeedback = async (data: ReviewRequestDto) => {
     if (feedbackAppointment) {
       setLoading(true);
@@ -140,6 +159,7 @@ const Bookings = (): ReactElement => {
         { label: 'Unpaid', id: BookingsTabs.WAITING_FOR_PAYMENT },
         { label: 'Upcoming', id: BookingsTabs.UPCOMING },
         { label: 'Past', id: BookingsTabs.PAST },
+        { label: 'Cancellation Pending', id: BookingsTabs.CANCEL_PENDING },
         { label: 'Cancelled', id: BookingsTabs.CANCELLED },
       ]}
       onTabChange={setActiveTab}
@@ -195,6 +215,7 @@ const Bookings = (): ReactElement => {
         appointment={showAppointment || defaultAppointmentValue}
         loading={loading}
         onClose={() => setShowAppointment(null)}
+        onRefund={handleRequestRefund}
       />
       <AppointmentsModal
         open={!!feedbackAppointment}
