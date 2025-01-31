@@ -158,14 +158,32 @@ class AppointmentsController extends Controller
 
     /**
      * @param $id
-     * @param Request $request
      * @return JsonResponse
      */
-    public function customerCancel($id, Request $request): JsonResponse
+    public function customerCancel($id): JsonResponse
     {
         try {
-            $request = $request->all();
-            $result = $this->model->customerCancel($id, $request);
+            $result = $this->model->customerCancel($id);
+
+            return new JsonResponse($result, Response::HTTP_OK);
+        } catch (\Exception $e) {
+
+            return new JsonResponse([
+                'error' => 'Something went wrong.',
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @param $id
+     * @return JsonResponse
+     */
+    public function requestRefund($id): JsonResponse
+    {
+        try {
+            $result = $this->model->requestRefund($id);
 
             return new JsonResponse($result, Response::HTTP_OK);
         } catch (\Exception $e) {

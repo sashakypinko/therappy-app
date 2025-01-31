@@ -36,6 +36,7 @@ import { ImageSizesEnum } from '../../../../enums/image-sizes.enum';
 import SelectInput from '../../../ui/select-input';
 import TextInput from '../../../ui/text-input';
 import { formatTime } from "../../../../helpers/date-time.helper";
+import {AppointmentStatusesEnum} from '../../../../enums/appointment-statuses.enum';
 
 const StyledAccordion = styled(Accordion)(
   () => `
@@ -412,6 +413,7 @@ interface Props {
   setSubmitData?: (submitData: AcceptRequestDto | CancelRequestDto | ReviewRequestDto) => void;
   onSubmit?: (data: any) => void;
   loading: boolean;
+  onRefund?: () => void;
   onClose: () => void;
   submitProps?: {
     label: string;
@@ -431,6 +433,7 @@ const AppointmentsModal = ({
     /**/
   },
   onClose,
+  onRefund,
   onSubmit = () => {
     /**/
   },
@@ -444,6 +447,10 @@ const AppointmentsModal = ({
   };
 
   const userData = appointment[userType === UserTypesEnum.PROVIDER ? 'user' : 'therapist'];
+  
+  const showRefundButton = onRefund
+    && userType === UserTypesEnum.CLIENT
+    && appointment.status === AppointmentStatusesEnum.FINISHED;
 
   return (
     <Modal open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -481,7 +488,14 @@ const AppointmentsModal = ({
             {open && <Details formRef={innerFormRef} />}
           </Box>
           <Divider sx={{ mt: 2, mb: 2 }} />
-          <Box display="flex" justifyContent={submitProps ? 'space-between' : 'end'}>
+          <Box display="flex" justifyContent={submitProps ? 'space-between' : 'end'} gap={2}>
+            {
+              showRefundButton && (
+                <Button variant="contained" color="warning" onClick={onRefund} disabled={loading}>
+                  Request refund
+                </Button>
+              )
+            }
             <Button variant="contained" color="secondary" onClick={onClose} disabled={loading}>
               Cancel
             </Button>

@@ -10,7 +10,7 @@ import {
   getAppointmentsError,
   getAppointmentsSuccess,
   removeAppointmentError,
-  removeAppointmentSuccess,
+  removeAppointmentSuccess, requestRefundAppointmentError, requestRefundAppointmentSuccess,
   updateAppointmentError,
   updateAppointmentSuccess,
 } from '../actions/appointments';
@@ -73,6 +73,18 @@ export function* removeAppointment({ payload, meta }: Action): SagaIterator {
   } catch (error: any) {
     console.log([error]);
     yield put(removeAppointmentError(error));
+    meta.onError();
+  }
+}
+
+export function* requestRefund({ payload, meta }: Action): SagaIterator {
+  try {
+    const res = yield call(AppointmentApi.requestRefund, payload);
+    yield put(requestRefundAppointmentSuccess());
+    yield call(meta.onSuccess, res);
+  } catch (error: any) {
+    console.log([error]);
+    yield put(requestRefundAppointmentError(error));
     meta.onError();
   }
 }

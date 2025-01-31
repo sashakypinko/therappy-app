@@ -124,27 +124,19 @@ Route::group(['prefix' => '/appointments', 'middleware' => ['auth:sanctum']], fu
     Route::get('/get-totals', [AppointmentsController::class, 'getTotals'])->name('api.therapists.appointments.get-totals');
     Route::post('/customer-list', [AppointmentsController::class, 'customerGetList'])->name('api.appointments.customer-list');
     Route::post('/create', [AppointmentsController::class, 'create'])->name('api.appointments.create');
-    //Route::post('/pay-cart', [AppointmentsController::class, 'payCart'])->name('api.appointments.pay-cart');
     Route::post('/payment-create', [PaymentsController::class, 'paymentCreate'])->name('api.appointments.payment-create');
     Route::post('/payment-complete', [PaymentsController::class, 'paymentComplete'])->name('api.appointments.payment-complete');
     Route::post('/get-available-schedule', [AppointmentsController::class, 'getAvailableSchedule'])->name('api.appointments.get-available-schedule');
     Route::get('/{id}', [AppointmentsController::class, 'get'])->name('api.appointments.get');
     Route::post('/{id}/edit', [AppointmentsController::class, 'edit'])->name('api.appointments.edit');
-   // Route::post('/{id}/pay', [AppointmentsController::class, 'pay'])->name('api.appointments.pay');
     Route::post('/{id}/customer-cancel', [AppointmentsController::class, 'customerCancel'])->name('api.appointments.customer-cancel');
-   // Route::get('/{id}', [AppointmentsController::class, 'get'])->name('api.appointments.get');
+    Route::post('/{id}/request-refund', [AppointmentsController::class, 'requestRefund'])->name('api.appointments.request-refund');
     Route::post('/{id}/accept', [AppointmentsController::class, 'accept'])->name('api.appointments.accept');
     Route::post('/{id}/therapist-cancel', [AppointmentsController::class, 'cancel'])->name('api.appointments.therapist-cancel');
     Route::post('/{id}/start', [AppointmentsController::class, 'start'])->name('api.appointments.start');
     Route::post('/{id}/finish', [AppointmentsController::class, 'finish'])->name('api.appointments.finish');
     Route::post('/{id}/review', [AppointmentsController::class, 'review'])->name('api.appointments.review');
 });
-/*
-Route::group(['prefix' => '/payments', 'middleware' => ['auth:sanctum']], function () {
-    Route::post('/pay-cart', [PaymentsController::class, 'stripePost'])->name('api.appointments.pay-cart');
-});
-*/
-
 
 Route::group(['prefix' => 'media'], function () {
     Route::get('/{id}', [MediaController::class, 'get'])->name('api.media.get');
