@@ -9,4 +9,5 @@ export enum AdminRouteEnum {
   PROVIDERS_VERIFICATION = '/admin/therapists-verification',
   REPORTS = '/admin/reports',
   LANDING_CONTENT = '/admin/landing-content',
+  REFUNDS = '/admin/refunds',
 }

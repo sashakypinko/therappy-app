@@ -3,8 +3,8 @@ import {
   Body,
   Param,
   Delete,
-  Controller,
-} from "@nestjs/common";
+  Controller, Logger,
+} from '@nestjs/common';
 
 import {
   ApiResponse,
@@ -34,7 +34,7 @@ export class PaymentController {
         user_id,
         appointment_ids
       } = createPaymentDto;
-
+      Logger.log('createPayment');
       const { token } = await this.tyroService.generateAuthToken();
       const amount = await this.appointmentService.collectAmount(appointment_ids)
 
@@ -44,6 +44,7 @@ export class PaymentController {
         appointment_ids,
         therapist_id: null,
         transaction_id: null,
+        transaction_external_id: null,
         status: EPaymentStatus.PENDING
       });
 
@@ -79,11 +80,12 @@ export class PaymentController {
 
     try {
       const payment = await this.paymentService.get(payment_id)
-
-      await this.appointmentService.moveToPending(payment.appointment_ids);
+      const externalId = await this.tyroService.getExternalId(transaction_id);
+      await this.appointmentService.moveToPending(externalId, payment.appointment_ids);
 
       await this.paymentService.update(payment_id, {
         transaction_id,
+        transaction_external_id: externalId, 
         status: EPaymentStatus.COMPLETED,
       });
 

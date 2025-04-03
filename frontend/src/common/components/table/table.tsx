@@ -59,6 +59,7 @@ interface Props<T> {
   onDeleteClick?: (item: T) => void;
   onOrderChange?: (order: Order<T>) => void;
   onLoad?: (data: DataTableRequest<T>) => void;
+  customActions?: (row: T) => ReactNode;
 }
 
 const Table = <T,>({
@@ -79,6 +80,7 @@ const Table = <T,>({
   onOrderChange,
   onLoad,
   withEmptyRows,
+  customActions,
 }: Props<T>): ReactElement => {
   const [offset, setOffset] = useState<number>(0);
   const [limit, setLimit] = useState<number>(25);
@@ -196,6 +198,7 @@ const Table = <T,>({
                             <Edit />
                           </IconButton>
                         )}
+                      {customActions && customActions(row)}
                     </MuiTableCell>
                   </TableRow>
                 );

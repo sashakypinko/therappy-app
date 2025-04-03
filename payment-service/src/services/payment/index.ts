@@ -27,6 +27,7 @@ export class PaymentService {
       amount,
       user_id,
       transaction_id,
+      transaction_external_id,
       appointment_ids,
     } = createPaymentDto;
 
@@ -35,6 +36,7 @@ export class PaymentService {
       status,
       user_id,
       transaction_id,
+      transaction_external_id,
       appointment_ids,
     });
 

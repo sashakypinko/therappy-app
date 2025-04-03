@@ -19,6 +19,9 @@ export class BasePaymentDto {
 
   @IsOptional()
   @IsString() transaction_id: string | null
+
+  @IsOptional()
+  @IsString() transaction_external_id: string | null
 }
 
-export class UpdatePaymentDto extends PickType(BasePaymentDto, ["status", "transaction_id"] as const) {}
+export class UpdatePaymentDto extends PickType(BasePaymentDto, ["status", "transaction_id", "transaction_external_id"] as const) {}

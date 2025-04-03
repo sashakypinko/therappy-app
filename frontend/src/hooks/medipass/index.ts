@@ -6,6 +6,7 @@ import * as Interfaces from "./interfaces";
 import { EmptyFunction } from "common/constants";
 
 interface IUseMedipassHook {
+  appointmentsIds: number[]
   token: string
   onError: Interfaces.TOnError
   onCancel: Interfaces.TOnCancel
@@ -19,6 +20,7 @@ interface IUseMedipassHook {
 }
 
 export const useMedipass = ({
+  appointmentsIds,
   token,
   onError,
   onCancel,
@@ -45,10 +47,18 @@ export const useMedipass = ({
     medipassSDK.renderCreateTransaction(
       {
         ...transaction,
-        platform: "virtual-terminal",
+        platform: 'virtual-terminal',
+        webhooks: [
+          {
+            url: `${process.env.REACT_APP_PHP_API_URL}/payments/complete-refund?appointments=${appointmentsIds.join(',')}`,
+            event: 'invoiceRefunded',
+            method: 'POST',
+            headers: { sessionKey: process.env.REACT_APP_TYRO_SESSION_KEY },
+          },
+        ],
       },
       {
-        version: "3",
+        version: '3',
         allowEdit: false,
         disableModifyServiceItems: true,
         onError,

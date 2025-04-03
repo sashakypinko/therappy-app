@@ -151,6 +151,7 @@ const WaitingForPayment = ({
       {(paymentData && user) && (
         <MedipassPayment
           user={user}
+          appointmentsIds={appointmentsIds}
           onError={handleError}
           onCancel={handleCancel}
           onSuccess={handleSuccess}

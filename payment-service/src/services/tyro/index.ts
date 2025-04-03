@@ -3,7 +3,7 @@ import { HttpService } from "services";
 import { Injectable, Inject } from "@nestjs/common";
 
 import { TyroAPI, TyroTokenPayload } from "./constants";
-import { IGenerateTokenResponse } from "./interfaces";
+import {IGenerateTokenResponse, ITransactionsResponse} from './interfaces';
 
 @Injectable()
 export class TyroService {
@@ -23,5 +23,22 @@ export class TyroService {
     });
 
     return response.data;
+  }
+
+  async getExternalId(transactionId: string): Promise<string | null> {
+    const query = `${TyroAPI.V3}/businesses/${process.env.TYRO_APP_BUSINESS_ID}/transactions?page=1&limit=10&transactionTypes=invoice&searchText=${transactionId}`;
+
+    const response = await this.httpService.get<ITransactionsResponse>(query, {
+      headers: {
+        "x-appid": process.env.TYRO_APP_ID,
+        "authorization": `Bearer ${process.env.TYRO_API_KEY}`
+      }
+    });
+    
+    if (!response.data.items || !response.data.items.length) {
+      return null;
+    }
+
+    return response.data.items[0]._id;
   }
 }

@@ -26,4 +26,5 @@ export interface IAppointment {
   therapist?: IProvider;
   created_at?: string;
   review?: ReviewRequestDto | null;
+  external_transaction_id?: string | null;
 }

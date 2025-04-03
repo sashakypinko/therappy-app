@@ -32,6 +32,10 @@ export class Payment {
     onUpdate: "CURRENT_TIMESTAMP",
     default: () => "CURRENT_TIMESTAMP",
   })
+
+  @Column({ nullable: true })
+  transaction_external_id: string | null;
+  
   updated_at: Date
 }
 

@@ -70,5 +70,6 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
         'admin' => \App\Http\Middleware\IsAdmin::class,
+        'tyro-webhook' => \App\Http\Middleware\TyroWebhook::class,
     ];
 }

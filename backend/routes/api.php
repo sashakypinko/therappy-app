@@ -64,7 +64,7 @@ Route::group(['prefix' => 'users'], function () {
     Route::get('/{id}/set-new-status', [UsersController::class, 'setNewStatus'])->middleware(['auth:sanctum'])->name('api.users.set-new-status');
 });
 
-Route::group(['prefix' => 'admin', 'middleware' => ['auth:sanctum', 'admin']], function() {
+Route::group(['prefix' => 'admin', 'middleware' => ['auth:sanctum', 'admin']], function () {
     Route::group(['prefix' => '/services'], function () {
         Route::post('/create', [ServiceController::class, 'create'])->name('api.admin.services.create');
         Route::get('/{id}', [ServiceController::class, 'get'])->name('api.admin.services.get');
@@ -136,6 +136,10 @@ Route::group(['prefix' => '/appointments', 'middleware' => ['auth:sanctum']], fu
     Route::post('/{id}/start', [AppointmentsController::class, 'start'])->name('api.appointments.start');
     Route::post('/{id}/finish', [AppointmentsController::class, 'finish'])->name('api.appointments.finish');
     Route::post('/{id}/review', [AppointmentsController::class, 'review'])->name('api.appointments.review');
+});
+
+Route::group(['prefix' => '/payments', 'middleware' => ['tyro-webhook']], function () {
+    Route::post('/complete-refund', [PaymentsController::class, 'completeRefund'])->name('api.appointments.complete-refund');
 });
 
 Route::group(['prefix' => 'media'], function () {
