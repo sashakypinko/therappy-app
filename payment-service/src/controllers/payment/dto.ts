@@ -9,6 +9,7 @@ export class CancelPaymentPayloadDto {
 export class CompletedPaymentPayloadDto {
   @IsNumber() payment_id: number
   @IsString() transaction_id: string
+  @IsString() transaction_external_id: string
 }
 
 export class CreatePaymentPayloadDto extends PickType(BasePaymentDto, ["user_id", "appointment_ids"] as const) {}

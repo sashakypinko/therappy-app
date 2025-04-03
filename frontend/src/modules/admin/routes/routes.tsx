@@ -11,6 +11,7 @@ const Services = lazy(() => import('../components/pages/services'));
 const Clients = lazy(() => import('../components/pages/clients'));
 const Bookings = lazy(() => import('../components/pages/bookings'));
 const Providers = lazy(() => import('../components/pages/providers'));
+const Refunds = lazy(() => import('../components/pages/refunds'));
 
 export const routes: RouteInterface[] = [
   {
@@ -56,6 +57,11 @@ export const routes: RouteInterface[] = [
   {
     path: AdminRouteEnum.LANDING_CONTENT,
     Component: LandingContent,
+    authOnly: true,
+  },
+  {
+    path: AdminRouteEnum.REFUNDS,
+    Component: Refunds,
     authOnly: true,
   },
   // {

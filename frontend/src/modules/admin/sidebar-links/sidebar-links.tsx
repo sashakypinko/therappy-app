@@ -1,4 +1,5 @@
 import { AdminRouteEnum } from '../routes/enums/route.enum';
+import { CurrencyExchangeRounded } from '@mui/icons-material';
 import { Dashboard, Notebook, Notes, People, PeopleSync, Security } from "../../../common/ui/icon";
 import { SidebarLinkInterface } from '../../../common/layouts/sidebar/interfaces/interfaces';
 
@@ -17,6 +18,11 @@ export const sidebarLinks: SidebarLinkInterface[] = [
     label: 'Booking Management',
     link: AdminRouteEnum.BOOKINGS,
     Icon: Notes,
+  },
+  {
+    label: 'Refund Management',
+    link: AdminRouteEnum.REFUNDS,
+    Icon: () => <CurrencyExchangeRounded sx={{ color: '#fff' }} />,
   },
   {
     label: 'Sp Management',

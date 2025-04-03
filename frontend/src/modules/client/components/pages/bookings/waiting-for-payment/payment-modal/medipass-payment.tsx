@@ -22,6 +22,7 @@ interface IPayment {
 export interface IMedipassPayment {
   user: IUser
   paymentData: IPayment
+  appointmentsIds: number[]
   onError(response: IErrorTransaction): void
   onSuccess(response: ISuccessTransaction): void
 
@@ -31,6 +32,7 @@ export interface IMedipassPayment {
 
 export const MedipassPayment = ({
   user,
+  appointmentsIds,
   onError,
   onSuccess,
   paymentData,
@@ -38,6 +40,7 @@ export const MedipassPayment = ({
   onCloseModal = EmptyFunction,
 }: IMedipassPayment) => {
   useMedipass({
+    appointmentsIds,
     token: paymentData.token,
     transaction: {
       invoiceReference: "1",

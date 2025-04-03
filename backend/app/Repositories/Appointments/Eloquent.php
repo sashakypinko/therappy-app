@@ -37,6 +37,7 @@ class Eloquent implements AppointmentsRepository
 
     public const TAB_CANCELLED = 'cancelled';
     public const TAB_CALENDAR = 'calendar';
+    public const TAB_REFUND = 'refund';
     public const TAB_ALL = 'all';
 
     public const TABS_ARRAY = [
@@ -48,6 +49,7 @@ class Eloquent implements AppointmentsRepository
         self::TAB_CANCELLED => [Appointment::STATUS_CANCELLED],
         self::TAB_CALENDAR => [Appointment::STATUS_APPROVED, Appointment::STATUS_ACTIVE, Appointment::STATUS_FINISHED],
         self::TAB_CANCEL_PENDING => [Appointment::STATUS_CANCEL_PENDING],
+        self::TAB_REFUND => [Appointment::STATUS_CANCEL_PENDING, Appointment::STATUS_REFUND_PENDING],
         self::TAB_ALL => [],
     ];
 
@@ -314,23 +316,13 @@ class Eloquent implements AppointmentsRepository
             ->select([
                 'appointments.*'
             ]);
-
+        Log::info($request['tab']);
         switch ($request['tab']) {
-            case (self::TAB_CART):
-                //$request['filter']['statuses'] = [Appointment::STATUS_NEW];
-                break;
-            case (self::TAB_UPCOMING):
-                //$request['filter']['statuses'] = [Appointment::STATUS_APPROVED, Appointment::STATUS_PAID];
-                break;
-            case (self::TAB_PAST):
-                //$request['filter']['statuses'] = [Appointment::STATUS_FINISHED];
-                break;
             case (self::TAB_CANCELLED):
                 $builder = $this->datatableCancelledCustomer($builder, $request);
                 break;
             case (self::TAB_CALENDAR):
                 $request['filter']['date'] = $request['filter']['date'] ?? Carbon::today()->format('Y-m-d');
-                //$request['statuses'] = [Appointment::STATUS_PAID, Appointment::STATUS_ACTIVE, Appointment::STATUS_FINISHED];
                 break;
             default:
                 break;
@@ -1073,5 +1065,14 @@ class Eloquent implements AppointmentsRepository
         $totals['TOTAL'] = $this->service->getTotalsForInterval($builder, $startDate, $endDate);
 
         return $totals;
+    }
+
+    public function completeRefund($id)
+    {
+        $model = $this->byId($id, false);
+        $model->status = Appointment::STATUS_CANCELLED;
+        $model->save();
+
+        return $model;
     }
 }

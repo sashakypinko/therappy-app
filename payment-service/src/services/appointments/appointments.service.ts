@@ -1,5 +1,5 @@
 import { EntityManager } from "typeorm";
-import { Injectable } from "@nestjs/common";
+import {Injectable, Logger} from '@nestjs/common';
 
 import * as queries from "./queries";
 
@@ -7,8 +7,9 @@ import * as queries from "./queries";
 export class AppointmentsService {
   constructor(private appointmentManager: EntityManager) {}
 
-  async moveToPending(ids: Array<number>) {
-    await this.appointmentManager.query(queries.UPDATE_STATUS_TO_PENDING, [ids]);
+  async moveToPending(externalId: string | null, ids: Array<number>) {
+    Logger.log(externalId)
+    await this.appointmentManager.query(queries.UPDATE_STATUS_TO_PENDING, [externalId, ids]);
   }
 
   async collectAmount(ids: Array<number>): Promise<number> {

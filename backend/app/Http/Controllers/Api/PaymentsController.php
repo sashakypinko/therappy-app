@@ -159,6 +159,28 @@ class PaymentsController extends Controller
 
     }
 
+    /**
+     * @param $id
+     * @return JsonResponse
+     */
+    public function completeRefund(Request $request): JsonResponse
+    {
+        try {
+            $ids = explode(',', $request->get('appointments') ?? []);
 
+            foreach ($ids as $id) {
+                app(AppointmentsRepository::class)->completeRefund($id);
+            }
+
+            return new JsonResponse([], Response::HTTP_OK);
+        } catch (\Exception $e) {
+
+            return new JsonResponse([
+                'error' => 'Something went wrong.',
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

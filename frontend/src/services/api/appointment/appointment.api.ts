@@ -75,6 +75,9 @@ export const AppointmentApi = new AppointmentApiService('appointments');
 class AdminAppointmentService extends ApiService {
   getByQuery = async (query: object): Promise<DataTableResponse<IAppointment>> =>
     await this.post('/list', query).then((res) => res.data);
+
+  getRefundsByQuery = async (query: object): Promise<DataTableResponse<IAppointment>> =>
+    await this.post('/list', { tab: 'refund', ...query }).then((res) => res.data);
 }
 
 export const AdminAppointmentApi = new AdminAppointmentService('admin/appointments');
