@@ -1,0 +1,87 @@
+#customCalendar {
+  .MuiPickersSlideTransition-root {
+    min-height: 460px !important;
+
+    @media (max-width: 380px) {
+      min-height: 360px !important;
+    }
+
+    @media (max-width: 550px) {
+      min-height: 400px !important;
+    }
+
+    @media (min-width: 768px) {
+      min-height: 400px !important;
+    }
+  }
+
+  .MuiDateCalendar-root {
+    min-height: 500px !important;
+
+    @media (max-width: 380px) {
+      min-height: 400px !important;
+    }
+
+    @media (max-width: 550px) {
+      min-height: 440px !important;
+    }
+
+    @media (min-width: 768px) {
+      min-height: 480px !important;
+    }
+  }
+
+  .MuiPickersFadeTransitionGroup-root {
+    font-size: 24px;
+
+    @media (max-width: 380px) {
+      font-size: 16px !important;
+    }
+
+    @media (max-width: 550px) {
+      font-size: 20px !important;
+    }
+
+    @media (min-width: 768px) {
+      font-size: 24px !important;
+    }
+  }
+
+  .MuiYearCalendar-root {
+    width: 100% !important;
+  }
+
+  .MuiDayCalendar-weekDayLabel {
+    width: 55px !important;
+
+    @media (max-width: 380px) {
+      width: 32px !important;
+    }
+
+    @media (max-width: 550px) {
+      width: 40px !important;
+    }
+
+    @media (min-width: 768px) {
+      width: 55px !important;
+    }
+  }
+
+  .MuiPickersDay-root {
+    width: 45px;
+    height: 45px;
+    margin: 6px;
+
+    @media (max-width: 380px) {
+      margin: 0;
+    }
+
+    @media (max-width: 550px) {
+      margin: 3px;
+    }
+
+    @media (min-width: 768px) {
+      margin: 6px;
+    }
+  }
+}

@@ -1,56 +1,109 @@
-# compiled output
-/dist
-/node_modules
-/build
+# ================ Frontend ================
+
+# dependencies
+/frontend/.pnp
+/frontend/.pnp.js
+/frontend/node_modules
+
+# testing
+/frontend/coverage
+
+# production
+/frontend/build
+
+# misc
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/package-lock.json
+
+# ================ Backend ================
+/backend/app
+/backend/tests
+/backend/database/seeders
+/backend/database/factories
+
+/backend/.phpunit.cache
+/backend/node_modules
+/backend/public/build
+/backend/public/hot
+/backend/public/storage
+/backend/storage/app/media
+/backend/storage/*.key
+/backend/vendor
+/backend/.env
+/backend/.env.backup
+/backend/.env.production
+/backend/.phpunit.result.cache
+/backend/Homestead.json
+/backend/Homestead.yaml
+/backend/auth.json
+/backend/npm-debug.log
+/backend/yarn-error.log
+/backend/.fleet
+/backend/.idea
+/backend/.vscode
+
+# =============== Payment Service ================
+/payment-service/dist
+/payment-service/build
+/payment-service/node_modules
 
 # Logs
-logs
-*.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
+/payment-service/logs
+/payment-service/*.log
+/payment-service/npm-debug.log*
+/payment-service/pnpm-debug.log*
+/payment-service/yarn-debug.log*
+/payment-service/yarn-error.log*
+/payment-service/lerna-debug.log*
 
 # OS
-.DS_Store
+/payment-service/.DS_Store
 
 # Tests
-/coverage
-/.nyc_output
+/payment-service/coverage
+/payment-service/.nyc_output
 
 # IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+/payment-service/.idea
+/payment-service/.project
+/payment-service/.classpath
+/payment-service/.c9/
+/payment-service/*.launch
+/payment-service/.settings/
+/payment-service/*.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+/payment-service/.vscode/*
+/payment-service/!.vscode/settings.json
+/payment-service/!.vscode/tasks.json
+/payment-service/!.vscode/launch.json
+/payment-service/!.vscode/extensions.json
 
 # dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+/payment-service/.env
+/payment-service/.env.development.local
+/payment-service/.env.test.local
+/payment-service/.env.production.local
+/payment-service/.env.local
 
 # temp directory
-.temp
-.tmp
+/payment-service/.temp
+/payment-service/.tmp
 
 # Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+/payment-service/pids
+/payment-service/*.pid
+/payment-service/*.seed
+/payment-service/*.pid.lock
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+/payment-service/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+

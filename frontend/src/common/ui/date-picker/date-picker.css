@@ -1,0 +1,12 @@
+.MuiInputBase-colorPrimary.MuiInputBase-formControl.MuiInputBase-adornedEnd {
+  border-radius: 8px;
+}
+
+.MuiPickersPopper-paper {
+  width: 360px;
+  margin-top: 19px;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 13px 0 rgba(55, 56, 67, 0.05), 0 20px 80px 0 rgba(55, 56, 67, 0.1) !important;
+  border: 1px solid #d8d9df !important;
+  margin-left: -14px;
+}

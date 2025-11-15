@@ -1,0 +1,31 @@
+export interface ILandingContent {
+  id?: number;
+  welcome_section_title: string;
+  welcome_section_subtitle: string;
+  welcome_section_button: string;
+  services_section_title: string;
+  services_section_card_title: string;
+  services_section_card_text: string;
+  why_therappy_section_title: string;
+  why_therappy_section_text: string;
+  advantages_section_title: string;
+  advantages_section_1_card_title: string;
+  advantages_section_1_card_text: string;
+  advantages_section_2_card_title: string;
+  advantages_section_2_card_text: string;
+  advantages_section_3_card_title: string;
+  advantages_section_3_card_text: string;
+  advantages_section_4_card_title: string;
+  advantages_section_4_card_text: string;
+  advantages_section_5_card_title: string;
+  advantages_section_5_card_text: string;
+  advantages_section_6_card_title: string;
+  advantages_section_6_card_text: string;
+  how_it_works_section_title: string;
+  how_it_works_section_1_step_text: string;
+  how_it_works_section_2_step_text: string;
+  how_it_works_section_3_step_text: string;
+  professionals_section_title: string;
+  professionals_section_text: string;
+  reviews_section_title: string;
+}
